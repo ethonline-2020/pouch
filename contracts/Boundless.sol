@@ -6,19 +6,31 @@ interface MintInterface {
     function balanceOf(address owner) external view returns (uint256);
 }
 
-interface TokenInterface {
+contract TokenInterface {
+    mapping(address => uint256) public nonces;
     function allowance(address, address) external view returns (uint256);
     function approve(address, uint256) external;
     function transfer(address, uint256) external returns (bool);
     function transferFrom(address, address, uint256) external returns (bool);
+    function permit(
+        address,
+        address,
+        uint256,
+        uint256,
+        bool,
+        uint8,
+        bytes32,
+        bytes32
+    ) external;
 }
 
-contract Boundless {
+contract Pouch {
     uint256 public totalDaiDeposits;
     mapping(address => bool) registeredUser;
     mapping(address => uint256) balances;
-    address daiAddress = 0xB5E5D0F8C0cbA267CD3D7035d6AdC8eBA7Df7Cdd;
-    address cDaiAddress = 0x2B536482a01E620eE111747F8334B395a42A555E;
+
+    address daiAddress = 0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa;
+    address cDaiAddress = 0xe7bc397DBd069fC7d0109C0636d06888bb50668c;
 
     MintInterface cDai = MintInterface(cDaiAddress);
     TokenInterface dai = TokenInterface(daiAddress);
@@ -31,13 +43,13 @@ contract Boundless {
         return balances[msg.sender];
     }
 
-    function deposit(uint256 amount) external {
-        dai.transferFrom(msg.sender, address(this), amount);
+    function deposit(address sender, uint256 amount) external {
+        dai.transferFrom(sender, address(this), amount);
         totalDaiDeposits += amount;
         dai.approve(cDaiAddress, amount);
         cDai.mint(amount);
-        balances[msg.sender] += amount;
-        registeredUser[msg.sender] = true;
+        balances[sender] += amount;
+        registeredUser[sender] = true;
     }
 
     function transact(address recipient, uint256 amount) external {

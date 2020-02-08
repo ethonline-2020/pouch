@@ -42,6 +42,15 @@ module.exports = {
         ),
       gasPrice: 10000000000,
       network_id: 3
+    },
+    kovan: {
+      provider: () =>
+        new HDWalletProvider(
+          mnemonic,
+          `https://kovan.infura.io/v3/${INFURA_ID}`
+        ),
+      gasPrice: 10000000000,
+      network_id: 42
     }
     // kovan: configNetwork("kovan", 42),
     // rinkeby: configNetwork("rinkeby", 4),
