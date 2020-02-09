@@ -1,6 +1,5 @@
 import TokenInterface from "./contracts/TokenInterface.json";
 import Web3 from "web3";
-const CONTRACT_ADDRESS = "0x60657a655d17B41F81A11D78c0cae64749df4F40";
 
 const domainSchema = [
   { name: "name", type: "string" },
@@ -17,7 +16,7 @@ const permitSchema = [
   { name: "allowed", type: "bool" }
 ];
 
-export default async (web3, signer) => {
+export default async (web3, signer, CONTRACT_ADDRESS) => {
   // const web3 = new Web3(window.web3.currentProvider);
   const domainData = {
     name: "Dai Stablecoin",
@@ -26,16 +25,18 @@ export default async (web3, signer) => {
     verifyingContract: "0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa"
   };
 
+  const daiInstance = new web3.eth.Contract(
+    TokenInterface.abi,
+    "0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa"
+  );
+
+  let nonce = await daiInstance.methods.nonces(signer).call();
   const message = {
-    from: {
-      name: "You",
-      wallet: signer
-    },
-    to: {
-      name: "Pouch",
-      wallet: CONTRACT_ADDRESS
-    },
-    contents: "Pls permit your DAI"
+    holder: signer,
+    spender: CONTRACT_ADDRESS,
+    nonce: nonce,
+    expiry: 0,
+    allowed: true
   };
 
   let typedData = JSON.stringify({
@@ -47,13 +48,6 @@ export default async (web3, signer) => {
     domain: domainData,
     message
   });
-
-  const daiInstance = new web3.eth.Contract(
-    TokenInterface.abi,
-    "0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa"
-  );
-
-  let nonce = await daiInstance.methods.nonces(signer).call();
   web3.currentProvider.sendAsync(
     {
       method: "eth_signTypedData_v3",
@@ -72,7 +66,6 @@ export default async (web3, signer) => {
       await daiInstance.methods
         .permit(signer, CONTRACT_ADDRESS, nonce, 0, true, v, r, s)
         .send({ from: signer, gas: 4000000 });
-      // return { r, s, v };
     }
   );
 };

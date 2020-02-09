@@ -12,7 +12,8 @@ class App extends Component {
     web3: null,
     accounts: null,
     contract: null,
-    daiContract: null
+    daiContract: null,
+    contractAddress: null
   };
 
   componentDidMount = async () => {
@@ -33,7 +34,7 @@ class App extends Component {
 
       const daiInstance = new web3.eth.Contract(
         TokenInterface.abi,
-        "0xB5E5D0F8C0cbA267CD3D7035d6AdC8eBA7Df7Cdd"
+        "0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa"
       );
 
       // await approveDAI(100, { from: accounts[0], gas: "3000000" });
@@ -41,9 +42,16 @@ class App extends Component {
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
       this.setState(
-        { web3, accounts, contract: instance, daiContract: daiInstance },
-        this.runExample
-        // this.getAllowance
+        {
+          web3,
+          accounts,
+          contract: instance,
+          daiContract: daiInstance,
+          contractAddress: deployedNetwork && deployedNetwork.address
+        },
+        // this.runExample
+
+        this.getAllowance
       );
     } catch (error) {
       // Catch any errors for any of the above operations.
@@ -72,89 +80,64 @@ class App extends Component {
     return x;
   }
 
-  signTx = async () => {
-    const { web3, accounts, contract } = this.state;
-    let address = "0x5222318905891Ae154c3FA5437830cAA86be5499";
-    let contractAddress = "0x60657a655d17B41F81A11D78c0cae64749df4F40";
-    let privateKey = "123";
-    let txParams = {
-      from: address,
-      gas: web3.utils.toHex(210000),
-      gasPrice: "20000000000",
-      to: contractAddress,
-      value: "0x0",
-      data: contract.methods.deposit(1).encodeABI()
-    };
+  // runExample = async () => {
+  //   const { web3, contract, accounts } = this.state;
 
-    const signedTx = await web3.eth.accounts.signTransaction(
-      txParams,
-      accounts[0]
-    );
+  //   const allowance = await contract.methods
+  //     .checkDaiAllowance()
+  //     .call({ from: accounts[0] });
+  //   console.log(allowance);
+  //   // await contract.methods.deposit(1).send({ from: accounts[0] });
 
-    console.log(signedTx);
+  //   // Get the value from the contract to prove it worked.
+  //   // const response = await contract.methods.get().call();
 
-    let receipt = await web3.eth.sendSignedTransaction(
-      signedTx.raw,
-      (error, txHash) => {
-        if (error) {
-          return console.error(error);
-        }
-        console.log(txHash);
-      }
-    );
-  };
-
-  runExample = async () => {
-    const { web3, contract, accounts } = this.state;
-
-    // const allowance = await contract.methods
-    //   .checkDaiAllowance()
-    //   .call({ from: accounts[0] });
-    // console.log(allowance);
-    // await contract.methods.deposit(1).send({ from: accounts[0] });
-
-    // Get the value from the contract to prove it worked.
-    // const response = await contract.methods.get().call();
-
-    // Update state with the result.
-    // this.setState({ allowance });
-  };
+  //   // Update state with the result.
+  //   this.setState({ allowance });
+  // };
 
   handleApprove = async () => {
     const { web3, accounts, daiContract } = this.state;
     const BN = web3.utils.BN;
     // const amount = this.bigNumInString("1000000");
     await daiContract.methods
-      .approve(
-        "0x5C9858A68a8ea144c07a1270ba7F7d93f5fbBbfD",
-        "1000000000000000000"
-      )
+      .approve(accounts[0], "1000000000000000000")
       .send({ from: accounts[0] });
   };
 
   handleDeposit = async () => {
-    const { web3, accounts, contract } = this.state;
-    const BN = web3.utils.BN;
+    const {
+      web3,
+      accounts,
+      contract,
+      daiContract,
+      contractAddress
+    } = this.state;
+    // const BN = web3.utils.BN;
     // const amount = this.bigNumInString("1000000");
-    await contract.methods
-      .deposit(accounts[0], "10000000000000")
-      .send({ from: accounts[0], gas: 4000000 });
+    await daiContract.methods
+      .transferFrom(accounts[0], contractAddress, 100)
+      .send({ from: accounts[0], gas: 2000000 });
+    // await contract.methods
+    //   .deposit(accounts[0], "100000")
+    //   .send({ from: accounts[0], gas: 4000000 });
   };
 
-  // getAllowance = async () => {
-  //   const { web3, accounts, daiContract } = this.state;
-  //   const BN = web3.utils.BN;
-  //   // const amount = this.bigNumInString("1000000");
-  //   const allowance = await daiContract.methods
-  //     .allowance(accounts[0], "0x5C9858A68a8ea144c07a1270ba7F7d93f5fbBbfD")
-  //     .call();
+  getAllowance = async () => {
+    const { web3, accounts, daiContract, contractAddress } = this.state;
+    // const amount = this.bigNumInString("1000000");
+    const allowance = await daiContract.methods
+      .allowance(accounts[0], contractAddress)
+      .call();
 
-  //   this.setState({ allowance });
-  // };
+    console.log(allowance);
+
+    this.setState({ allowance });
+  };
 
   sign = async () => {
-    const { web3, accounts } = this.state;
-    await permitDai(web3, accounts[0]);
+    const { web3, accounts, daiContract, contractAddress } = this.state;
+    await permitDai(web3, accounts[0], contractAddress);
   };
   render() {
     if (!this.state.web3) {
