@@ -1,5 +1,5 @@
-var Boundless = artifacts.require("./Boundless.sol");
+var Pouch = artifacts.require("./Pouch.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(Boundless);
+  deployer.deploy(Pouch);
 };
