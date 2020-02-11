@@ -71,7 +71,7 @@ class App extends Component {
     } = this.state;
 
     await contract.methods
-      .deposit(accounts[0], "1000000000000000")
+      .deposit(accounts[0], "1000000000000000000")
       .send({ from: accounts[0], gas: 4000000 });
   };
 
