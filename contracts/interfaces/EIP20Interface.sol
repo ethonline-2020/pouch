@@ -54,7 +54,7 @@ contract EIP20Interface {
         view
         returns (uint256 remaining);
 
-    function permit(
+    function permitted(
         address,
         address,
         uint256,

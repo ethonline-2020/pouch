@@ -4,11 +4,12 @@ pragma solidity >=0.5.0;
 Implements EIP20 token standard: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md
 .*/
 
-import "./interfaces/EIP20Interface.sol";
+// import "./interfaces/EIP20Interface.sol";
+import "./interfaces/PTokenInterface.sol";
 import "./interfaces/cTokenInterface.sol";
 import "./libraries/SafeMath.sol";
 
-contract PouchToken is EIP20Interface {
+contract PouchToken is PTokenInterface {
     using SafeMath for uint256;
 
     uint256 private constant MAX_UINT256 = uint(-1);
@@ -27,8 +28,8 @@ contract PouchToken is EIP20Interface {
     */
 
     // --- ERC20 Data ---
-    string  public constant name     = "Pouch DAI";
-    string  public constant symbol   = "pDAI";
+    string  public constant name     = "Pouch Token";
+    string  public constant symbol   = "PCH";
     string  public constant version  = "1";
     uint8   public constant decimals = 18;
 
@@ -66,6 +67,7 @@ contract PouchToken is EIP20Interface {
         if (allowance < MAX_UINT256) {
             allowed[_from][msg.sender] -= _value;
         }
+        totalSupply += _value;
         emit Transfer(_from, _to, _value); //solhint-disable-line indent, no-unused-vars
         return true;
     }
@@ -92,7 +94,7 @@ contract PouchToken is EIP20Interface {
     }
     
     // --- Approve by signature ---
-    function permit(address holder, address spender, uint256 nonce, uint256 expiry,
+    function permitted(address holder, address spender, uint256 nonce, uint256 expiry,
                     bool isAllowed, uint8 v, bytes32 r, bytes32 s) public
     {
         bytes32 digest =

@@ -33,4 +33,4 @@ truffle deploy --reset --network ropsten
 
 ## Pouch DAI (pDAI) kovan address
 
-0xC6Fd686def22E55AcFa91e2FCdB3262500E48E07
+0x6850F39E4c838f76b1176072475f9DC33F4a4300

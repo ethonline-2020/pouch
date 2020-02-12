@@ -3,108 +3,111 @@ pragma solidity >=0.5.0;
 // import "./interfaces/TokenInterface.sol";
 import "./interfaces/cTokenInterface.sol";
 import "./interfaces/EIP20Interface.sol";
-import "./EIP712MetaTransaction.sol";
+// import "./EIP712MetaTransaction.sol";
 
-contract Pouch is EIP712MetaTransaction("Pouch", "1") {
+contract Pouch {
+    /*is EIP712MetaTransaction("Pouch", "1")*/
     // uint256 public totalDaiDeposits;
     // mapping(address => bool) registeredUser;
     mapping(address => uint256) balances;
     address public admin;
-    
+
     uint256 cDaiAllowedAmount = 350000000000000000000000000000000000000000000;
     address daiAddress = 0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa;
     address cDaiAddress = 0xe7bc397DBd069fC7d0109C0636d06888bb50668c;
+    address pDaiAddress = 0xb5cea18Db04008a4D68444A298DBDD2D0E442E3D;
 
     EIP20Interface daiToken = EIP20Interface(daiAddress);
     cTokenInterface cDai = cTokenInterface(cDaiAddress);
+    EIP20Interface pDaiToken = EIP20Interface(pDaiAddress);
 
-    constructor() public {
-        admin = msg.sender;
-        daiToken.approve(cDaiAddress, cDaiAllowedAmount);
-    }
+    // constructor() public {
+    //     admin = msg.sender;
+    //     daiToken.approve(cDaiAddress, cDaiAllowedAmount);
+    // }
 
-    modifier adminOnly() {
-        require(msg.sender == admin, "Not authorized");
-        _;
-    }
-    // ** Deposit DAI **
-    function deposit(uint256 value) external {
-        // Check if User's Dai Balance is more or equal to the value sent.
-        uint256 userBalance = daiToken.balanceOf(msgSender());
-        require(
-            userBalance >= value,
-            "User does not have the required DAI balance."
-        );
+    // modifier adminOnly() {
+    //     require(msg.sender == admin, "Not authorized");
+    //     _;
+    // }
+    // // ** Deposit DAI **
+    // function deposit(address spender, uint256 value) external {
+    //     // Check if User's Dai Balance is more or equal to the value sent.
+    //     uint256 userBalance = daiToken.balanceOf(msgSender());
+    //     require(
+    //         userBalance >= value,
+    //         "User does not have the required DAI balance."
+    //     );
 
-        daiToken.transferFrom(msgSender(), address(this), value);
-        balances[msgSender()] += value;
-        totalSupply += value;
-        emit Transfer(
-            0x0000000000000000000000000000000000000000,
-            msgSender(),
-            value
-        );
+    //     daiToken.transferFrom(msgSender(), address(this), value);
+    //     balances[msgSender()] += value;
 
-        // Check for Dai allowance given from this contract to Cdai Contract
-        uint256 cDaiAllowance = daiToken.allowance(address(this), cDaiAddress);
-        if (cDaiAllowance < value) {
-            uint256 amount = value > cDaiAllowedAmount
-                ? value
-                : cDaiAllowedAmount;
-            daiToken.approve(cDaiAddress, amount);
-        }
+    //     emit pDaiToken.Transfer(
+    //         0x0000000000000000000000000000000000000000,
+    //         msgSender(),
+    //         value
+    //     );
 
-        cDai.mint(value);
-    }
+    //     // Check for Dai allowance given from this contract to Cdai Contract
+    //     uint256 cDaiAllowance = daiToken.allowance(address(this), cDaiAddress);
+    //     if (cDaiAllowance < value) {
+    //         uint256 amount = value > cDaiAllowedAmount
+    //             ? value
+    //             : cDaiAllowedAmount;
+    //         daiToken.approve(cDaiAddress, amount);
+    //     }
 
-    // ** Withdraw DAI**
-    function withdraw(uint256 value) external {
-        // Check if User's PCH balance is more or equal to the value sent.
-        uint256 pouchBalance = balanceOf(msgSender());
-        require(
-            pouchBalance >= value,
-            "User does not have the required PCH balance."
-        );
+    //     cDai.mint(value);
+    // }
 
-        // Burn PCH
-        transfer(0x0000000000000000000000000000000000000000, value);
-        totalSupply -= value;
+    // // ** Withdraw DAI**
+    // function withdraw(uint256 value) external {
+    //     // Check if User's PCH balance is more or equal to the value sent.
+    //     uint256 pouchBalance = pDaiToken.balanceOf(msgSender());
+    //     require(
+    //         pouchBalance >= value,
+    //         "User does not have the required PCH balance."
+    //     );
 
-        // Redeem User's DAI from compound and transfer it to user.
-        cDai.redeemUnderlying(value);
-        daiToken.transfer(msgSender(), value);
-    }
+    //     // Burn PCH
+    //     pDaiToken.transfer(0x0000000000000000000000000000000000000000, value);
+    //     totalSupply -= value;
 
-    function spitProfits() external adminOnly {
-        uint256 adjustedTotalSupply = totalSupply.mul(100000000);
-        uint256 ourContractBalance = cDai.balanceOf(address(this));
-        uint256 cDaiExchangeRate = cDai.exchangeRateCurrent();
-        uint256 cDaiExchangeRateDivided = cDaiExchangeRate.div(10000000000);
+    //     // Redeem User's DAI from compound and transfer it to user.
+    //     cDai.redeemUnderlying(value);
+    //     daiToken.transfer(msgSender(), value);
+    // }
 
-        uint256 currentPrice = adjustedTotalSupply.div(cDaiExchangeRateDivided);
-        uint256 profit = ourContractBalance.sub(currentPrice);
-        cDai.transfer(msg.sender, profit);
+    // function spitProfits() external adminOnly {
+    //     uint256 adjustedTotalSupply = totalSupply.mul(100000000);
+    //     uint256 ourContractBalance = cDai.balanceOf(address(this));
+    //     uint256 cDaiExchangeRate = cDai.exchangeRateCurrent();
+    //     uint256 cDaiExchangeRateDivided = cDaiExchangeRate.div(10000000000);
 
-    }
+    //     uint256 currentPrice = adjustedTotalSupply.div(cDaiExchangeRateDivided);
+    //     uint256 profit = ourContractBalance.sub(currentPrice);
+    //     cDai.transfer(msg.sender, profit);
 
-    function myCurrentBalance() external view returns (uint256) {
-        return cDai.balanceOf(address(this));
-    }
+    // }
 
-    function getExchangeRate() external view returns (uint256) {
-        return cDai.exchangeRateCurrent();
-    }
+    // function myCurrentBalance() external view returns (uint256) {
+    //     return cDai.balanceOf(address(this));
+    // }
 
-    function checkProfits() external view returns (uint256) {
-        uint256 adjustedTotalSupply = totalSupply.mul(100000000);
-        uint256 ourContractBalance = cDai.balanceOf(address(this));
-        uint256 cDaiExchangeRate = cDai.exchangeRateCurrent();
-        uint256 cDaiExchangeRateDivided = cDaiExchangeRate.div(10000000000);
+    // function getExchangeRate() external view returns (uint256) {
+    //     return cDai.exchangeRateCurrent();
+    // }
 
-        uint256 currentPrice = adjustedTotalSupply.div(cDaiExchangeRateDivided);
-        uint256 profit = ourContractBalance.sub(currentPrice);
-        return profit;
-    }
+    // function checkProfits() external view returns (uint256) {
+    //     uint256 adjustedTotalSupply = totalSupply.mul(100000000);
+    //     uint256 ourContractBalance = cDai.balanceOf(address(this));
+    //     uint256 cDaiExchangeRate = cDai.exchangeRateCurrent();
+    //     uint256 cDaiExchangeRateDivided = cDaiExchangeRate.div(10000000000);
+
+    //     uint256 currentPrice = adjustedTotalSupply.div(cDaiExchangeRateDivided);
+    //     uint256 profit = ourContractBalance.sub(currentPrice);
+    //     return profit;
+    // }
     // MintInterface cDai = MintInterface(cDaiAddress);
     // TokenInterface dai = TokenInterface(daiAddress);
 
@@ -142,4 +145,5 @@ contract Pouch is EIP712MetaTransaction("Pouch", "1") {
     // function contractBalance() external view returns (uint256) {
     //     return cDai.balanceOf(address(this));
     // }
+
 }

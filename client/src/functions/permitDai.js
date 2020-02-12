@@ -1,4 +1,4 @@
-import TokenInterface from "./contracts/TokenInterface.json";
+import TokenInterface from "../contracts/TokenInterface.json";
 const domainSchema = [
   { name: "name", type: "string" },
   { name: "version", type: "string" },

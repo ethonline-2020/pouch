@@ -1,18 +1,22 @@
 import React, { Component } from "react";
 import PouchContract from "./contracts/Pouch.json";
 import TokenInterface from "./contracts/TokenInterface.json";
+import PTokenInterface from "./contracts/EIP20Interface.json";
 import getWeb3 from "./web3/getWeb3";
 import "./App.css";
-import permitDai from "./permit";
-
+import permitDai from "./functions/permitDai";
+import permitPDai from "./functions/permitPDai";
+import { PDAI_ADDRESS } from "./constants";
 class App extends Component {
   state = {
     allowance: 0,
+    pDaiAllowance: 0,
     web3: null,
     accounts: null,
     contract: null,
     daiContract: null,
-    contractAddress: null
+    contractAddress: null,
+    pDaiContract: null
   };
 
   componentDidMount = async () => {
@@ -31,9 +35,14 @@ class App extends Component {
         deployedNetwork && deployedNetwork.address
       );
 
-      const daiInstance = new web3.eth.Contract(
+      const daiContract = new web3.eth.Contract(
         TokenInterface.abi,
         "0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa"
+      );
+
+      const pDaiContract = new web3.eth.Contract(
+        PTokenInterface.abi,
+        PDAI_ADDRESS
       );
 
       // await approveDAI(100, { from: accounts[0], gas: "3000000" });
@@ -45,8 +54,9 @@ class App extends Component {
           web3,
           accounts,
           contract: instance,
-          daiContract: daiInstance,
-          contractAddress: deployedNetwork && deployedNetwork.address
+          daiContract,
+          contractAddress: deployedNetwork && deployedNetwork.address,
+          pDaiContract
         },
         // this.runExample
 
@@ -76,19 +86,30 @@ class App extends Component {
   };
 
   getAllowance = async () => {
-    const { web3, accounts, daiContract, contractAddress } = this.state;
+    const {
+      web3,
+      accounts,
+      daiContract,
+      contractAddress,
+      pDaiContract
+    } = this.state;
     const allowance = await daiContract.methods
       .allowance(accounts[0], contractAddress)
       .call();
 
-    console.log(allowance);
+    const pDaiAllowance = await pDaiContract.methods
+      .allowance(accounts[0], contractAddress)
+      .call();
 
-    this.setState({ allowance });
+    console.log(pDaiAllowance);
+
+    this.setState({ allowance, pDaiAllowance });
   };
 
   sign = async () => {
     const { web3, accounts, daiContract, contractAddress } = this.state;
-    await permitDai(web3, accounts[0], contractAddress);
+    // await permitDai(web3, accounts[0], contractAddress);
+    await permitPDai(web3, accounts[0], contractAddress);
   };
   render() {
     if (!this.state.web3) {
@@ -100,6 +121,7 @@ class App extends Component {
         <button onClick={this.handleDeposit}>Deposit 0.001 DAI</button>
         <button onClick={this.sign}>Sign & Permit DAI</button>
         <div>Allowance: {this.state.allowance}</div>
+        <div>pDAI Allowance: {this.state.pDaiAllowance}</div>
       </div>
     );
   }
