@@ -1,8 +1,10 @@
 pragma solidity >=0.5.0;
+pragma experimental ABIEncoderV2;
 
-// import "./interfaces/TokenInterface.sol";
+import "./interfaces/TokenInterface.sol";
 import "./interfaces/cTokenInterface.sol";
-import "./interfaces/EIP20Interface.sol";
+import "./interfaces/PTokenInterface.sol";
+// import "./interfaces/EIP20Interface.sol";
 // import "./EIP712MetaTransaction.sol";
 
 contract Pouch {
@@ -11,54 +13,86 @@ contract Pouch {
     // mapping(address => bool) registeredUser;
     mapping(address => uint256) balances;
     address public admin;
+    bytes32 public DOMAIN_SEPARATOR;
+    struct Deposit {
+        address holder;
+        uint256 value;
+    }
+    bytes32 public constant DEPOSIT_TYPEHASH = keccak256(
+        "Deposit(address holder,uint256 value)"
+    );
 
-    uint256 cDaiAllowedAmount = 350000000000000000000000000000000000000000000;
+    uint256 cDaiAllowedAmount = uint256(-1);
     address daiAddress = 0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa;
     address cDaiAddress = 0xe7bc397DBd069fC7d0109C0636d06888bb50668c;
     address pDaiAddress = 0xb5cea18Db04008a4D68444A298DBDD2D0E442E3D;
 
-    EIP20Interface daiToken = EIP20Interface(daiAddress);
+    TokenInterface daiToken = TokenInterface(daiAddress);
     cTokenInterface cDai = cTokenInterface(cDaiAddress);
-    EIP20Interface pDaiToken = EIP20Interface(pDaiAddress);
+    PTokenInterface pDaiToken = PTokenInterface(pDaiAddress);
 
-    // constructor() public {
-    //     admin = msg.sender;
-    //     daiToken.approve(cDaiAddress, cDaiAllowedAmount);
-    // }
+    constructor() public {
+        DOMAIN_SEPARATOR = keccak256(
+            abi.encode(
+                keccak256(
+                    "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+                ),
+                keccak256("Pouch"),
+                keccak256("1"),
+                42, // kovan chainId
+                address(this)
+            )
+        );
+        admin = msg.sender;
+        // daiToken.approve(cDaiAddress, cDaiAllowedAmount);
+    }
 
-    // modifier adminOnly() {
-    //     require(msg.sender == admin, "Not authorized");
-    //     _;
-    // }
-    // // ** Deposit DAI **
-    // function deposit(address spender, uint256 value) external {
-    //     // Check if User's Dai Balance is more or equal to the value sent.
-    //     uint256 userBalance = daiToken.balanceOf(msgSender());
-    //     require(
-    //         userBalance >= value,
-    //         "User does not have the required DAI balance."
-    //     );
+    modifier adminOnly() {
+        require(msg.sender == admin, "Not authorized");
+        _;
+    }
+    // ** Deposit DAI **
+    function deposit(Deposit memory dep, bytes32 r, bytes32 s, uint8 v) public {
+        bytes32 digest = keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                DOMAIN_SEPARATOR,
+                keccak256(abi.encode(DEPOSIT_TYPEHASH, dep.holder, dep.value))
+            )
+        );
 
-    //     daiToken.transferFrom(msgSender(), address(this), value);
-    //     balances[msgSender()] += value;
+        require(dep.holder != address(0), "Pouch/invalid-address-0");
+        require(
+            dep.holder == ecrecover(digest, v, r, s),
+            "Pouch/invalid-permit"
+        );
+        // Check if User's Dai Balance is more or equal to the value sent.
+        // uint256 userBalance = daiToken.balanceOf(dep.holder);
+        // require(
+        //     userBalance >= dep.value,
+        //     "User does not have the required DAI balance."
+        // );
 
-    //     emit pDaiToken.Transfer(
-    //         0x0000000000000000000000000000000000000000,
-    //         msgSender(),
-    //         value
-    //     );
+        daiToken.transferFrom(dep.holder, address(this), dep.value);
+        balances[dep.holder] += dep.value;
 
-    //     // Check for Dai allowance given from this contract to Cdai Contract
-    //     uint256 cDaiAllowance = daiToken.allowance(address(this), cDaiAddress);
-    //     if (cDaiAllowance < value) {
-    //         uint256 amount = value > cDaiAllowedAmount
-    //             ? value
-    //             : cDaiAllowedAmount;
-    //         daiToken.approve(cDaiAddress, amount);
-    //     }
+        // emit pDaiToken.Transfer(
+        //     0x0000000000000000000000000000000000000000,
+        //     holder,
+        //     value
+        // );
 
-    //     cDai.mint(value);
-    // }
+        // Check for Dai allowance given from this contract to Cdai Contract
+        uint256 cDaiAllowance = daiToken.allowance(address(this), cDaiAddress);
+        if (cDaiAllowance < dep.value) {
+            uint256 amount = dep.value > cDaiAllowedAmount
+                ? dep.value
+                : cDaiAllowedAmount;
+            daiToken.approve(cDaiAddress, amount);
+        }
+
+        cDai.mint(dep.value);
+    }
 
     // // ** Withdraw DAI**
     // function withdraw(uint256 value) external {

@@ -6,6 +6,7 @@ import getWeb3 from "./web3/getWeb3";
 import "./App.css";
 import permitDai from "./functions/permitDai";
 import permitPDai from "./functions/permitPDai";
+import depositDai from "./functions/deposit";
 import { PDAI_ADDRESS } from "./constants";
 class App extends Component {
   state = {
@@ -80,9 +81,10 @@ class App extends Component {
       contractAddress
     } = this.state;
 
-    await contract.methods
-      .deposit(accounts[0], "1000000000000000000")
-      .send({ from: accounts[0], gas: 4000000 });
+    // await contract.methods
+    //   .deposit(accounts[0], "1000000000000000000")
+    //   .send({ from: accounts[0], gas: 4000000 });
+    await depositDai(web3, accounts[0], contractAddress, "1000000000000000000");
   };
 
   getAllowance = async () => {
