@@ -6,7 +6,7 @@ const domainSchema = [
   { name: "verifyingContract", type: "address" }
 ];
 
-const depositSchema = [
+const withdrawSchema = [
   { name: "holder", type: "address" },
   { name: "value", type: "uint256" }
 ];
@@ -31,9 +31,9 @@ export default async (web3, signer, CONTRACT_ADDRESS, value) => {
   let typedData = JSON.stringify({
     types: {
       EIP712Domain: domainSchema,
-      Deposit: depositSchema
+      Withdraw: withdrawSchema
     },
-    primaryType: "Deposit",
+    primaryType: "Withdraw",
     domain: domainData,
     message
   });
@@ -53,7 +53,7 @@ export default async (web3, signer, CONTRACT_ADDRESS, value) => {
       // The signature is now comprised of r, s, and v.
       console.log("signature: ", signature);
       await pouchInstance.methods
-        .deposit(signer, value, r, s, v)
+        .withdraw(signer, value, r, s, v)
         .send({ from: signer, gas: 4000000 });
     }
   );

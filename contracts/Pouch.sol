@@ -14,12 +14,12 @@ contract Pouch {
     mapping(address => uint256) balances;
     address public admin;
     bytes32 public DOMAIN_SEPARATOR;
-    struct Deposit {
-        address holder;
-        uint256 value;
-    }
+
     bytes32 public constant DEPOSIT_TYPEHASH = keccak256(
         "Deposit(address holder,uint256 value)"
+    );
+    bytes32 public constant WITHDRAW_TYPEHASH = keccak256(
+        "Withdraw(address holder,uint256 value)"
     );
 
     uint256 cDaiAllowedAmount = uint256(-1);
@@ -52,29 +52,32 @@ contract Pouch {
         _;
     }
     // ** Deposit DAI **
-    function deposit(Deposit memory dep, bytes32 r, bytes32 s, uint8 v) public {
+    function deposit(
+        address holder,
+        uint256 value,
+        bytes32 r,
+        bytes32 s,
+        uint8 v
+    ) public {
         bytes32 digest = keccak256(
             abi.encodePacked(
                 "\x19\x01",
                 DOMAIN_SEPARATOR,
-                keccak256(abi.encode(DEPOSIT_TYPEHASH, dep.holder, dep.value))
+                keccak256(abi.encode(DEPOSIT_TYPEHASH, holder, value))
             )
         );
 
-        require(dep.holder != address(0), "Pouch/invalid-address-0");
-        require(
-            dep.holder == ecrecover(digest, v, r, s),
-            "Pouch/invalid-permit"
-        );
+        require(holder != address(0), "Pouch/invalid-address-0");
+        require(holder == ecrecover(digest, v, r, s), "Pouch/invalid-permit");
         // Check if User's Dai Balance is more or equal to the value sent.
-        // uint256 userBalance = daiToken.balanceOf(dep.holder);
+        // uint256 userBalance = daiToken.balanceOf(holder);
         // require(
-        //     userBalance >= dep.value,
+        //     userBalance >= value,
         //     "User does not have the required DAI balance."
         // );
 
-        daiToken.transferFrom(dep.holder, address(this), dep.value);
-        balances[dep.holder] += dep.value;
+        daiToken.transferFrom(holder, address(this), value);
+        balances[holder] += value;
 
         // emit pDaiToken.Transfer(
         //     0x0000000000000000000000000000000000000000,
@@ -84,33 +87,51 @@ contract Pouch {
 
         // Check for Dai allowance given from this contract to Cdai Contract
         uint256 cDaiAllowance = daiToken.allowance(address(this), cDaiAddress);
-        if (cDaiAllowance < dep.value) {
-            uint256 amount = dep.value > cDaiAllowedAmount
-                ? dep.value
+        if (cDaiAllowance < value) {
+            uint256 amount = value > cDaiAllowedAmount
+                ? value
                 : cDaiAllowedAmount;
             daiToken.approve(cDaiAddress, amount);
         }
 
-        cDai.mint(dep.value);
+        cDai.mint(value);
     }
 
-    // // ** Withdraw DAI**
-    // function withdraw(uint256 value) external {
-    //     // Check if User's PCH balance is more or equal to the value sent.
-    //     uint256 pouchBalance = pDaiToken.balanceOf(msgSender());
-    //     require(
-    //         pouchBalance >= value,
-    //         "User does not have the required PCH balance."
-    //     );
+    // ** Withdraw DAI**
+    function withdraw(
+        address holder,
+        uint256 value,
+        bytes32 r,
+        bytes32 s,
+        uint8 v
+    ) public {
+        bytes32 digest = keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                DOMAIN_SEPARATOR,
+                keccak256(abi.encode(WITHDRAW_TYPEHASH, holder, value))
+            )
+        );
 
-    //     // Burn PCH
-    //     pDaiToken.transfer(0x0000000000000000000000000000000000000000, value);
-    //     totalSupply -= value;
+        require(holder != address(0), "Pouch/invalid-address-0");
+        require(holder == ecrecover(digest, v, r, s), "Pouch/invalid-permit");
+        require(value <= balances[holder], "Insufficient Funds");
+        // Check if User's PCH balance is more or equal to the value sent.
+        // uint256 pouchBalance = pDaiToken.balanceOf(holder);
+        // require(
+        //     pouchBalance >= value,
+        //     "User does not have the required PCH balance."
+        // );
 
-    //     // Redeem User's DAI from compound and transfer it to user.
-    //     cDai.redeemUnderlying(value);
-    //     daiToken.transfer(msgSender(), value);
-    // }
+        // Burn PCH
+        // pDaiToken.transfer(0x0000000000000000000000000000000000000000, value);
+        // totalSupply -= value;
+
+        // Redeem User's DAI from compound and transfer it to user.
+        balances[holder] -= value;
+        cDai.redeemUnderlying(value);
+        daiToken.transfer(holder, value);
+    }
 
     // function spitProfits() external adminOnly {
     //     uint256 adjustedTotalSupply = totalSupply.mul(100000000);
