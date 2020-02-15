@@ -7,14 +7,15 @@ const domainSchema = [
   { name: "verifyingContract", type: "address" }
 ];
 
-const depositSchema = [
-  { name: "holder", type: "address" },
-  { name: "value", type: "uint256" }
+const transactSchema = [
+  { name: "_from", type: "address" },
+  { name: "_to", type: "address" },
+  { name: "_value", type: "uint256" }
 ];
 
 export default async (web3, signer, CONTRACT_ADDRESS, value) => {
   // const web3 = new Web3(window.web3.currentProvider);
-  // console.log(CONTRACT_ADDRESS);
+  console.log(CONTRACT_ADDRESS);
   const domainData = {
     name: "Pouch",
     version: "1",
@@ -25,16 +26,17 @@ export default async (web3, signer, CONTRACT_ADDRESS, value) => {
   const pouchInstance = new web3.eth.Contract(Pouch.abi, CONTRACT_ADDRESS);
 
   const message = {
-    holder: signer,
-    value: value
+    _from: signer,
+    _to: "0x3366E73946B725EC9351759aBC51C30465f55E29",
+    _value: value
   };
 
   let typedData = JSON.stringify({
     types: {
       EIP712Domain: domainSchema,
-      Deposit: depositSchema
+      Transact: transactSchema
     },
-    primaryType: "Deposit",
+    primaryType: "Transact",
     domain: domainData,
     message
   });
@@ -54,7 +56,14 @@ export default async (web3, signer, CONTRACT_ADDRESS, value) => {
       // The signature is now comprised of r, s, and v.
       console.log("signature: ", signature);
       await pouchInstance.methods
-        .deposit(signer, value, r, s, v)
+        .transact(
+          signer,
+          "0x3366E73946B725EC9351759aBC51C30465f55E29",
+          value,
+          r,
+          s,
+          v
+        )
         .send({ from: signer, gas: 4000000 });
     }
   );

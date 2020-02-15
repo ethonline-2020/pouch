@@ -8,6 +8,7 @@ import permitDai from "./functions/permitDai";
 import permitPDai from "./functions/permitPDai";
 import depositDai from "./functions/deposit";
 import withdrawDai from "./functions/withdraw";
+import transactDai from "./functions/transact";
 import { PDAI_ADDRESS } from "./constants";
 class App extends Component {
   state = {
@@ -99,6 +100,12 @@ class App extends Component {
     );
   };
 
+  handleTransact = async () => {
+    const { web3, accounts, contractAddress } = this.state;
+
+    await transactDai(web3, accounts[0], contractAddress, "100000000000000000");
+  };
+
   getAllowance = async () => {
     const {
       web3,
@@ -138,6 +145,7 @@ class App extends Component {
         <h1>Pouch</h1>
         <button onClick={this.handleDeposit}>Deposit 1.0 DAI</button>
         <button onClick={this.handleWithdraw}>Withdraw 1.0 DAI</button>
+        <button onClick={this.handleTransact}>Transact 0.1 DAI</button>
         <button onClick={this.signDai}>Sign & Permit DAI</button>
         <button onClick={this.signPDai}>Sign & Permit pDAI</button>
         <div>Allowance: {this.state.allowance}</div>

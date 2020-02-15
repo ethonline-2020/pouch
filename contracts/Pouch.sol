@@ -4,16 +4,23 @@ pragma experimental ABIEncoderV2;
 import "./interfaces/TokenInterface.sol";
 import "./interfaces/cTokenInterface.sol";
 import "./interfaces/PTokenInterface.sol";
-// import "./interfaces/EIP20Interface.sol";
-// import "./EIP712MetaTransaction.sol";
+import "./interfaces/proxyInterface.sol";
+import "./libraries/SafeMath.sol";
 
-contract Pouch {
-    /*is EIP712MetaTransaction("Pouch", "1")*/
-    // uint256 public totalDaiDeposits;
-    // mapping(address => bool) registeredUser;
-    mapping(address => uint256) balances;
+contract Pouch is proxyInterface {
+    using SafeMath for uint256;
+    
+    uint256 public totalSupply;
+    mapping(address => uint256) public balances;
+    mapping(address => mapping(address => uint256)) public allowed;
+    address public ImplementationAddress;
     address public admin;
     bytes32 public DOMAIN_SEPARATOR;
+    bytes32 public constant PERMIT_TYPEHASH = keccak256(
+        "Permit(address holder,address spender,uint256 nonce,uint256 expiry,bool isAllowed)"
+    );
+    mapping(address => uint256) public nonces;
+    uint256 private constant MAX_UINT256 = uint256(-1);
 
     bytes32 public constant DEPOSIT_TYPEHASH = keccak256(
         "Deposit(address holder,uint256 value)"
@@ -21,8 +28,11 @@ contract Pouch {
     bytes32 public constant WITHDRAW_TYPEHASH = keccak256(
         "Withdraw(address holder,uint256 value)"
     );
+    bytes32 public constant TRANSACT_TYPEHASH = keccak256(
+        "Transact(address _from,address _to,uint256 _value)"
+    );
 
-    uint256 cDaiAllowedAmount = uint256(-1);
+    // // // Required Interfaces
     address daiAddress = 0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa;
     address cDaiAddress = 0xe7bc397DBd069fC7d0109C0636d06888bb50668c;
     address pDaiAddress = 0xb5cea18Db04008a4D68444A298DBDD2D0E442E3D;
@@ -31,7 +41,7 @@ contract Pouch {
     cTokenInterface cDai = cTokenInterface(cDaiAddress);
     PTokenInterface pDaiToken = PTokenInterface(pDaiAddress);
 
-    constructor() public {
+    constructor(address tokenAddress) public {
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
                 keccak256(
@@ -40,17 +50,37 @@ contract Pouch {
                 keccak256("Pouch"),
                 keccak256("1"),
                 42, // kovan chainId
-                address(this)
+                tokenAddress
             )
         );
-        admin = msg.sender;
-        // daiToken.approve(cDaiAddress, cDaiAllowedAmount);
+        admin = tokenAddress;
     }
 
-    modifier adminOnly() {
-        require(msg.sender == admin, "Not authorized");
-        _;
+    // ** Internal Functions **
+
+    function _mint(address _to, uint256 _value)
+        internal
+        returns (bool success)
+    {
+        balances[_to] += _value;
+        totalSupply += _value;
+        emit Transfer(address(0), _to, _value);
+        return true;
     }
+
+    function _transfer(address _from, address _to, uint256 _value)
+        internal
+        returns (bool success)
+    {
+        require(balances[_from] >= _value);
+        balances[_from] -= _value;
+        balances[_to] += _value;
+        emit Transfer(_from, _to, _value);
+        return true;
+    }
+
+    
+
     // ** Deposit DAI **
     function deposit(
         address holder,
@@ -58,7 +88,7 @@ contract Pouch {
         bytes32 r,
         bytes32 s,
         uint8 v
-    ) public {
+    ) public returns (bool) {
         bytes32 digest = keccak256(
             abi.encodePacked(
                 "\x19\x01",
@@ -69,32 +99,16 @@ contract Pouch {
 
         require(holder != address(0), "Pouch/invalid-address-0");
         require(holder == ecrecover(digest, v, r, s), "Pouch/invalid-permit");
-        // Check if User's Dai Balance is more or equal to the value sent.
-        // uint256 userBalance = daiToken.balanceOf(holder);
-        // require(
-        //     userBalance >= value,
-        //     "User does not have the required DAI balance."
-        // );
 
-        daiToken.transferFrom(holder, address(this), value);
-        balances[holder] += value;
+        // ** Check for sufficient Funds **
+        uint256 userBalance = daiToken.balanceOf(holder);
+        require(userBalance >= value, "Insufficient Funds");
 
-        // emit pDaiToken.Transfer(
-        //     0x0000000000000000000000000000000000000000,
-        //     holder,
-        //     value
-        // );
-
-        // Check for Dai allowance given from this contract to Cdai Contract
-        uint256 cDaiAllowance = daiToken.allowance(address(this), cDaiAddress);
-        if (cDaiAllowance < value) {
-            uint256 amount = value > cDaiAllowedAmount
-                ? value
-                : cDaiAllowedAmount;
-            daiToken.approve(cDaiAddress, amount);
-        }
-
-        cDai.mint(value);
+        daiToken.transferFrom(holder, address(this), value); // **Transfer User's DAI**
+        _mint(holder, value); // **Mint PCH tokens for the User**
+        daiToken.approve(cDaiAddress, value);
+        cDai.mint(value); // **Mint cDai  **
+        return true;
     }
 
     // ** Withdraw DAI**
@@ -104,7 +118,7 @@ contract Pouch {
         bytes32 r,
         bytes32 s,
         uint8 v
-    ) public {
+    ) public returns (bool) {
         bytes32 digest = keccak256(
             abi.encodePacked(
                 "\x19\x01",
@@ -116,89 +130,87 @@ contract Pouch {
         require(holder != address(0), "Pouch/invalid-address-0");
         require(holder == ecrecover(digest, v, r, s), "Pouch/invalid-permit");
         require(value <= balances[holder], "Insufficient Funds");
-        // Check if User's PCH balance is more or equal to the value sent.
-        // uint256 pouchBalance = pDaiToken.balanceOf(holder);
-        // require(
-        //     pouchBalance >= value,
-        //     "User does not have the required PCH balance."
-        // );
 
-        // Burn PCH
-        // pDaiToken.transfer(0x0000000000000000000000000000000000000000, value);
-        // totalSupply -= value;
+        //          ** Burn Pouch Token **
+        _transfer(holder, address(0), value);
+        totalSupply -= value;
 
-        // Redeem User's DAI from compound and transfer it to user.
-        balances[holder] -= value;
+        //         **  Redeem User's DAI from compound and transfer it to user.**
         cDai.redeemUnderlying(value);
         daiToken.transfer(holder, value);
+        return true;
     }
 
-    // function spitProfits() external adminOnly {
-    //     uint256 adjustedTotalSupply = totalSupply.mul(100000000);
-    //     uint256 ourContractBalance = cDai.balanceOf(address(this));
+    //     function getExchangeRate() view public returns (uint) {
+    //         return cDai.exchangeRateCurrent();
+    //     }
+
+    //   function _randomReward() internal view returns (uint) {
+    //         uint randomnumber = uint(keccak256(abi.encodePacked(now, msg.sender,block.number))) % 5;
+    //         return randomnumber.mul(1e10);
+    //     }
+
+    function transact(
+        address _from,
+        address _to,
+        uint256 _value,
+        bytes32 r,
+        bytes32 s,
+        uint8 v
+    ) public returns (bool) {
+        bytes32 digest = keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                DOMAIN_SEPARATOR,
+                keccak256(abi.encode(TRANSACT_TYPEHASH, _from, _to, _value))
+            )
+        );
+
+        require(_from != address(0), "Pouch/invalid-address-0");
+        require(_from == ecrecover(digest, v, r, s), "Pouch/invalid-permit");
+        require(_value <= balances[_from], "Insufficient Funds");
+        require(_to != address(0));
+
+        // ** Transfer Funds **
+        _transfer(_from, _to, _value);
+
+        // ** Transfer Rewards,if Any. **
+        // if (value >= 1e18){
+        //     uint profitInDai =  _checkProfits().mul(getExchangeRate());
+        //     uint checkProfitInDai = profitInDai.div(1e18);
+        //     if(checkProfitInDai >= 1e11){
+        //         uint myReward =  _randomReward();
+        //         cDai.redeemUnderlying(myReward);
+        //         daiToken.transfer(msg.sender, myReward);
+
+        //     return true;
+        //     }
+        // }
+        return true;
+    }
+
+    // function _spitProfits() public returns (bool){
+
+    //     uint256 adjustedTotalSupply = totalSupply.mul(1e8);
+    //     uint256 ourContractBalance = cDai.balanceOf(admin);
     //     uint256 cDaiExchangeRate = cDai.exchangeRateCurrent();
-    //     uint256 cDaiExchangeRateDivided = cDaiExchangeRate.div(10000000000);
+    //     uint256 cDaiExchangeRateDivided = cDaiExchangeRate.div(1e10);
 
     //     uint256 currentPrice = adjustedTotalSupply.div(cDaiExchangeRateDivided);
     //     uint256 profit = ourContractBalance.sub(currentPrice);
     //     cDai.transfer(msg.sender, profit);
-
+    //     return true;
     // }
 
-    // function myCurrentBalance() external view returns (uint256) {
-    //     return cDai.balanceOf(address(this));
-    // }
-
-    // function getExchangeRate() external view returns (uint256) {
-    //     return cDai.exchangeRateCurrent();
-    // }
-
-    // function checkProfits() external view returns (uint256) {
-    //     uint256 adjustedTotalSupply = totalSupply.mul(100000000);
-    //     uint256 ourContractBalance = cDai.balanceOf(address(this));
+    // function _checkProfits() public returns (uint256) {
+    //     uint256 adjustedTotalSupply = totalSupply.mul(1e8);
+    //     uint256 ourContractBalance = cDai.balanceOf(admin);
     //     uint256 cDaiExchangeRate = cDai.exchangeRateCurrent();
-    //     uint256 cDaiExchangeRateDivided = cDaiExchangeRate.div(10000000000);
+    //     uint256 cDaiExchangeRateDivided = cDaiExchangeRate.div(1e10);
 
     //     uint256 currentPrice = adjustedTotalSupply.div(cDaiExchangeRateDivided);
     //     uint256 profit = ourContractBalance.sub(currentPrice);
-    //     return profit;
-    // }
-    // MintInterface cDai = MintInterface(cDaiAddress);
-    // TokenInterface dai = TokenInterface(daiAddress);
-
-    // function checkDaiAllowance() external view returns (uint256) {
-    //     return dai.allowance(msg.sender, address(this));
-    // }
-
-    // function userBalance() external view returns (uint256) {
-    //     return balances[msg.sender];
-    // }
-
-    // function deposit(address sender, uint256 amount) external {
-    //     dai.transferFrom(sender, address(this), amount);
-    //     totalDaiDeposits += amount;
-    //     dai.approve(cDaiAddress, amount);
-    //     cDai.mint(amount);
-    //     balances[sender] += amount;
-    //     registeredUser[sender] = true;
-    // }
-
-    // function transact(address recipient, uint256 amount) external {
-    //     require(registeredUser[msg.sender] == true, "Sender not registered");
-    //     require(amount <= balances[msg.sender], "Insufficient Funds");
-    //     balances[msg.sender] -= amount;
-    //     balances[recipient] += amount;
-    // }
-
-    // function withdraw(uint256 amount) external {
-    //     require(amount <= balances[msg.sender], "Insufficient Funds");
-    //     cDai.redeemUnderlying(amount);
-    //     dai.transfer(msg.sender, amount);
-    //     balances[msg.sender] -= amount;
-    // }
-
-    // function contractBalance() external view returns (uint256) {
-    //     return cDai.balanceOf(address(this));
+    //     return 5;
     // }
 
 }
