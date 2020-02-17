@@ -9,17 +9,17 @@ import "./libraries/SafeMath.sol";
 
 contract Pouch is proxyInterface {
     using SafeMath for uint256;
-    
+
     uint256 public totalSupply;
     mapping(address => uint256) public balances;
     mapping(address => mapping(address => uint256)) public allowed;
     address public ImplementationAddress;
     address public admin;
     bytes32 public DOMAIN_SEPARATOR;
-    bytes32 public constant PERMIT_TYPEHASH = keccak256(
-        "Permit(address holder,address spender,uint256 nonce,uint256 expiry,bool isAllowed)"
-    );
-    mapping(address => uint256) public nonces;
+    // bytes32 public constant PERMIT_TYPEHASH = keccak256(
+    //     "Permit(address holder,address spender,uint256 nonce,uint256 expiry,bool isAllowed)"
+    // );
+    // mapping(address => uint256) public nonces;
     uint256 private constant MAX_UINT256 = uint256(-1);
 
     bytes32 public constant DEPOSIT_TYPEHASH = keccak256(
@@ -78,8 +78,6 @@ contract Pouch is proxyInterface {
         emit Transfer(_from, _to, _value);
         return true;
     }
-
-    
 
     // ** Deposit DAI **
     function deposit(

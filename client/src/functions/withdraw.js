@@ -1,5 +1,5 @@
-import Pouch from "../contracts/Pouch.json";
-import { PDAI_ADDRESS } from "../constants";
+import Pouch from "../contracts/PouchDelegate.json";
+// import { PDAI_ADDRESS } from "../constants";
 const domainSchema = [
   { name: "name", type: "string" },
   { name: "version", type: "string" },
@@ -19,7 +19,7 @@ export default async (web3, signer, CONTRACT_ADDRESS, value) => {
     name: "Pouch",
     version: "1",
     chainId: "42",
-    verifyingContract: PDAI_ADDRESS
+    verifyingContract: CONTRACT_ADDRESS
   };
 
   const pouchInstance = new web3.eth.Contract(Pouch.abi, CONTRACT_ADDRESS);

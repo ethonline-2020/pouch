@@ -1,5 +1,5 @@
-import Pouch from "../contracts/Pouch.json";
-import { PDAI_ADDRESS } from "../constants";
+import Pouch from "../contracts/PouchDelegate.json";
+// import { PDAI_ADDRESS } from "../constants";
 const domainSchema = [
   { name: "name", type: "string" },
   { name: "version", type: "string" },
@@ -13,21 +13,21 @@ const transactSchema = [
   { name: "_value", type: "uint256" }
 ];
 
-export default async (web3, signer, CONTRACT_ADDRESS, value) => {
+export default async (web3, signer, CONTRACT_ADDRESS, value, recipient) => {
   // const web3 = new Web3(window.web3.currentProvider);
   console.log(CONTRACT_ADDRESS);
   const domainData = {
     name: "Pouch",
     version: "1",
     chainId: "42",
-    verifyingContract: PDAI_ADDRESS
+    verifyingContract: CONTRACT_ADDRESS
   };
 
   const pouchInstance = new web3.eth.Contract(Pouch.abi, CONTRACT_ADDRESS);
 
   const message = {
     _from: signer,
-    _to: "0x3366E73946B725EC9351759aBC51C30465f55E29",
+    _to: recipient,
     _value: value
   };
 
@@ -56,14 +56,7 @@ export default async (web3, signer, CONTRACT_ADDRESS, value) => {
       // The signature is now comprised of r, s, and v.
       console.log("signature: ", signature);
       await pouchInstance.methods
-        .transact(
-          signer,
-          "0x3366E73946B725EC9351759aBC51C30465f55E29",
-          value,
-          r,
-          s,
-          v
-        )
+        .transact(signer, recipient, value, r, s, v)
         .send({ from: signer, gas: 4000000 });
     }
   );

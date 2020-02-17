@@ -1,5 +1,5 @@
-import Pouch from "../contracts/Pouch.json";
-import { PDAI_ADDRESS } from "../constants";
+import Pouch from "../contracts/PouchDelegate.json";
+// import { PDAI_ADDRESS } from "../constants";
 const domainSchema = [
   { name: "name", type: "string" },
   { name: "version", type: "string" },
@@ -14,12 +14,12 @@ const depositSchema = [
 
 export default async (web3, signer, CONTRACT_ADDRESS, value) => {
   // const web3 = new Web3(window.web3.currentProvider);
-  // console.log(CONTRACT_ADDRESS);
+  console.log(CONTRACT_ADDRESS);
   const domainData = {
     name: "Pouch",
     version: "1",
     chainId: "42",
-    verifyingContract: PDAI_ADDRESS
+    verifyingContract: CONTRACT_ADDRESS
   };
 
   const pouchInstance = new web3.eth.Contract(Pouch.abi, CONTRACT_ADDRESS);
@@ -53,9 +53,12 @@ export default async (web3, signer, CONTRACT_ADDRESS, value) => {
       const v = parseInt(signature.substring(128, 130), 16);
       // The signature is now comprised of r, s, and v.
       console.log("signature: ", signature);
+      console.log("r", r);
+      console.log("s", s);
+      console.log("v", v);
       await pouchInstance.methods
         .deposit(signer, value, r, s, v)
-        .send({ from: signer, gas: 4000000 });
+        .send({ from: signer, gas: 8000000 });
     }
   );
 };

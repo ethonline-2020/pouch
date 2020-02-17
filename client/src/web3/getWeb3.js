@@ -7,12 +7,12 @@ const getWeb3 = () =>
     window.addEventListener("load", async () => {
       // Modern dapp browsers...
       if (window.ethereum) {
-        const biconomy = new Biconomy(window.ethereum, {
-          dappId: "5e3db06f3a87df0ac4454512",
-          apiKey: "gKaGR4WUI.38121703-4858-4819-88e7-d2b20119dfbf"
-        });
-        const web3 = new Web3(biconomy);
-        // const web3 = new Web3(window.ethereum);
+        // const biconomy = new Biconomy(window.ethereum, {
+        //   dappId: "5e3db06f3a87df0ac4454512",
+        //   apiKey: "gKaGR4WUI.38121703-4858-4819-88e7-d2b20119dfbf"
+        // });
+        // const web3 = new Web3(biconomy);
+        const web3 = new Web3(window.ethereum);
         try {
           // Request account access if needed
           await window.ethereum.enable();
