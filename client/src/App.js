@@ -15,7 +15,8 @@ import Functions from "./components/functions";
 
 class App extends Component {
   state = {
-    allowance: 0,
+    allowanceForPouch: 0,
+    allowanceForDelegate: 0,
     pDaiAllowance: 0,
     web3: null,
     accounts: null,
@@ -117,10 +118,14 @@ class App extends Component {
       contractAddress
       // pDaiContract
     } = this.state;
-    // const deployedNetwork = Pouch.networks["42"];
-    const allowance = await daiContract.methods
+    const allowanceForDelegate = await daiContract.methods
       .allowance(accounts[0], contractAddress)
       .call();
+    const deployedNetwork = Pouch.networks["42"];
+    const allowanceForPouch = 10;
+    // await daiContract.methods
+    //   .allowance(accounts[0], deployedNetwork.address)
+    //   .call();
 
     // const pDaiAllowance = await contractAddress.methods
     //   .allowance(accounts[0], contractAddress)
@@ -128,10 +133,13 @@ class App extends Component {
 
     // console.log(pDaiAllowance);
 
-    this.setState({ allowance /* pDaiAllowance*/ });
+    this.setState({
+      allowanceForDelegate,
+      allowanceForPouch /* pDaiAllowance*/
+    });
   };
 
-  signDai = async () => {
+  signDaiForDelegate = async () => {
     const { web3, accounts, contractAddress } = this.state;
     await permitDai(web3, accounts[0], contractAddress);
   };
@@ -152,7 +160,8 @@ class App extends Component {
       accounts,
       web3,
       contractAddress,
-      allowance,
+      allowanceForDelegate,
+      allowanceForPouch,
       pDaiAllowance
     } = this.state;
     if (!this.state.web3) {
@@ -162,13 +171,14 @@ class App extends Component {
         </div>
       );
     }
-    console.log(allowance);
+    console.log("pouch allowance:", allowanceForPouch);
+    console.log("delegate allowance:", allowanceForDelegate);
     return (
       <div className="bg">
         <div className="container pt-4 mt-3">
           <div className="custom-card">
             <h1 className="text-center bold">Welcome to Pouch</h1>
-            {allowance > 0 ? (
+            {allowanceForPouch > 0 && allowanceForDelegate > 0 ? (
               <Functions
                 accounts={accounts}
                 web3={web3}
@@ -176,34 +186,32 @@ class App extends Component {
               />
             ) : (
               <div className="container">
-                <div className="text-center">
-                  Please sign and permit DAI and PCH tokens.
-                </div>
+                <div className="text-center">Please sign and permit DAI.</div>
                 <div className="d-flex row justify-content-center pt-5">
                   <button
                     type="button"
                     className="btn btn-dark text-center btn-lg mx-3"
-                    onClick={this.signDai}
-                    disabled={allowance > 0}
+                    onClick={this.signDaiForPouch}
+                    disabled={allowanceForPouch > 0}
                   >
-                    Sign & Permit DAI &#x1F4AF;
+                    Sign & Permit DAI (Pouch) &#x1F4AF;
                   </button>
-                  {/* <button
+                  <button
                     type="button"
                     className="btn btn-primary text-center btn-lg mx-3"
-                    onClick={this.signPDai}
-                    disabled={pDaiAllowance > 0}
+                    onClick={this.signDaiForDelegate}
+                    disabled={allowanceForDelegate > 0}
                   >
-                    Sign & Permit PCH tokens
-                  </button> */}
+                    Sign & Permit DAI (Delegate)
+                  </button>
                 </div>
               </div>
             )}
+            <button onClick={this.signPDai}>Sign & Permit pDAI</button>
             {/* <button onClick={this.signDaiForPouch}>Sign & Permit DAI</button> */}
             {/* <button onClick={this.handleDeposit}>Deposit 1.0 DAI</button>
             <button onClick={this.handleWithdraw}>Withdraw 1.0 DAI</button>
             <button onClick={this.handleTransact}>Transact 0.1 DAI</button>
-            <button onClick={this.signPDai}>Sign & Permit pDAI</button>
             <div>Allowance: {this.state.allowance}</div>
             <div>pDAI Allowance: {this.state.pDaiAllowance}</div> */}
           </div>

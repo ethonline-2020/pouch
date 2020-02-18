@@ -14,8 +14,8 @@ export default class Functions extends Component {
       web3: null,
       accounts: null,
       contract: null,
-      daiContract: null,
-      contractAddress: null
+      daiContract: null
+      // contractAddress: null
       // pDaiContract: null
     };
   }

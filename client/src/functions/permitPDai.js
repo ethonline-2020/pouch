@@ -1,4 +1,4 @@
-import PTokenInterface from "../contracts/PTokenInterface.json"; // TODO: change this
+import PTokenInterface from "../contracts/PouchDelegate.json"; // TODO: change this
 import { PDAI_ADDRESS } from "../constants";
 
 const domainSchema = [
@@ -22,16 +22,19 @@ export default async (web3, signer, CONTRACT_ADDRESS) => {
     name: "Pouch Token",
     version: "1",
     chainId: "42",
-    verifyingContract: PDAI_ADDRESS
+    verifyingContract: "0x6f28449B1e1e8439C63EF62233bb015B72dF2a8e"
   };
 
-  const pDaiInstance = new web3.eth.Contract(PTokenInterface.abi, PDAI_ADDRESS);
+  const pDaiInstance = new web3.eth.Contract(
+    PTokenInterface.abi,
+    "0x6f28449B1e1e8439C63EF62233bb015B72dF2a8e"
+  );
 
   let nonce = await pDaiInstance.methods.nonces(signer).call();
   console.log("nonce", nonce);
   const message = {
     holder: signer,
-    spender: CONTRACT_ADDRESS,
+    spender: "0x5222318905891Ae154c3FA5437830cAA86be5499",
     nonce: nonce,
     expiry: 0,
     isAllowed: true
@@ -62,7 +65,16 @@ export default async (web3, signer, CONTRACT_ADDRESS) => {
       // The signature is now comprised of r, s, and v.
       console.log("signature: ", signature);
       await pDaiInstance.methods
-        .permitted(signer, CONTRACT_ADDRESS, nonce, 0, true, v, r, s)
+        .permitted(
+          signer,
+          "0x5222318905891Ae154c3FA5437830cAA86be5499",
+          nonce,
+          0,
+          true,
+          v,
+          r,
+          s
+        )
         .send({ from: signer, gas: 4000000 });
     }
   );

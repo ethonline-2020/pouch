@@ -16,12 +16,13 @@ export default async (web3, signer, CONTRACT_ADDRESS, value) => {
   // const web3 = new Web3(window.web3.currentProvider);
   console.log(CONTRACT_ADDRESS);
   const domainData = {
-    name: "Pouch",
+    name: "Pouch Token",
     version: "1",
     chainId: "42",
     verifyingContract: CONTRACT_ADDRESS
   };
-
+  // const deployedNetwork = Pouch.networks["42"];
+  // console.log(deployedNetwork.address);
   const pouchInstance = new web3.eth.Contract(Pouch.abi, CONTRACT_ADDRESS);
 
   const message = {
@@ -57,8 +58,15 @@ export default async (web3, signer, CONTRACT_ADDRESS, value) => {
       console.log("s", s);
       console.log("v", v);
       await pouchInstance.methods
-        .deposit(signer, value, r, s, v)
-        .send({ from: signer, gas: 8000000 });
+        .deposit(
+          signer,
+          value,
+          r,
+          s,
+          v
+          // "0x2cf8a1fcb9b15d68b17362da0fad585e8b2be6ab5eda314493686d4b01f2b97d"
+        )
+        .send({ from: signer, gas: 2000000 });
     }
   );
 };

@@ -3,6 +3,7 @@ pragma solidity >=0.5.0;
 
 contract TokenInterface {
     mapping(address => uint256) public nonces;
+    uint256 public totalSupply;
     function balanceOf(address owner) external view returns (uint256);
     function allowance(address, address) external view returns (uint256);
     function approve(address, uint256) external;
