@@ -16,7 +16,7 @@ export default async (web3, signer, CONTRACT_ADDRESS, value) => {
   // const web3 = new Web3(window.web3.currentProvider);
   console.log(CONTRACT_ADDRESS);
   const domainData = {
-    name: "Pouch",
+    name: "Pouch Token",
     version: "1",
     chainId: "42",
     verifyingContract: CONTRACT_ADDRESS

@@ -160,9 +160,7 @@ class App extends Component {
       accounts,
       web3,
       contractAddress,
-      allowanceForDelegate,
-      allowanceForPouch,
-      pDaiAllowance
+      allowanceForDelegate
     } = this.state;
     if (!this.state.web3) {
       return (
@@ -171,14 +169,13 @@ class App extends Component {
         </div>
       );
     }
-    console.log("pouch allowance:", allowanceForPouch);
     console.log("delegate allowance:", allowanceForDelegate);
     return (
       <div className="bg">
         <div className="container pt-4 mt-3">
           <div className="custom-card">
             <h1 className="text-center bold">Welcome to Pouch</h1>
-            {allowanceForPouch > 0 && allowanceForDelegate > 0 ? (
+            {allowanceForDelegate > 0 ? (
               <Functions
                 accounts={accounts}
                 web3={web3}
@@ -188,14 +185,14 @@ class App extends Component {
               <div className="container">
                 <div className="text-center">Please sign and permit DAI.</div>
                 <div className="d-flex row justify-content-center pt-5">
-                  <button
+                  {/* <button
                     type="button"
                     className="btn btn-dark text-center btn-lg mx-3"
                     onClick={this.signDaiForPouch}
                     disabled={allowanceForPouch > 0}
                   >
                     Sign & Permit DAI (Pouch) &#x1F4AF;
-                  </button>
+                  </button> */}
                   <button
                     type="button"
                     className="btn btn-primary text-center btn-lg mx-3"
@@ -207,7 +204,7 @@ class App extends Component {
                 </div>
               </div>
             )}
-            <button onClick={this.signPDai}>Sign & Permit pDAI</button>
+            {/* <button onClick={this.signPDai}>Sign & Permit pDAI</button> */}
             {/* <button onClick={this.signDaiForPouch}>Sign & Permit DAI</button> */}
             {/* <button onClick={this.handleDeposit}>Deposit 1.0 DAI</button>
             <button onClick={this.handleWithdraw}>Withdraw 1.0 DAI</button>

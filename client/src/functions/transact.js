@@ -8,16 +8,16 @@ const domainSchema = [
 ];
 
 const transactSchema = [
-  { name: "_from", type: "address" },
-  { name: "_to", type: "address" },
-  { name: "_value", type: "uint256" }
+  { name: "holder", type: "address" },
+  { name: "to", type: "address" },
+  { name: "value", type: "uint256" }
 ];
 
 export default async (web3, signer, CONTRACT_ADDRESS, value, recipient) => {
   // const web3 = new Web3(window.web3.currentProvider);
   console.log(CONTRACT_ADDRESS);
   const domainData = {
-    name: "Pouch",
+    name: "Pouch Token",
     version: "1",
     chainId: "42",
     verifyingContract: CONTRACT_ADDRESS
@@ -26,9 +26,9 @@ export default async (web3, signer, CONTRACT_ADDRESS, value, recipient) => {
   const pouchInstance = new web3.eth.Contract(Pouch.abi, CONTRACT_ADDRESS);
 
   const message = {
-    _from: signer,
-    _to: recipient,
-    _value: value
+    holder: signer,
+    to: recipient,
+    value: value
   };
 
   let typedData = JSON.stringify({
