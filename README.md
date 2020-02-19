@@ -30,3 +30,7 @@ INFURA_ID=<infura app id>
 truffle compile
 truffle deploy --reset --network ropsten
 ```
+
+## Pouch DAI (pDAI) kovan address
+
+0x6850F39E4c838f76b1176072475f9DC33F4a4300
