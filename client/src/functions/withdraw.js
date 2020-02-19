@@ -1,4 +1,4 @@
-import Pouch from "../contracts/PouchDelegate.json";
+import Pouch from "../contracts/Pouch.json";
 // import { PDAI_ADDRESS } from "../constants";
 const domainSchema = [
   { name: "name", type: "string" },
@@ -9,7 +9,8 @@ const domainSchema = [
 
 const withdrawSchema = [
   { name: "holder", type: "address" },
-  { name: "value", type: "uint256" }
+  { name: "value", type: "uint256" },
+  { name: "nonce", type: "uint256" }
 ];
 
 export default async (web3, signer, CONTRACT_ADDRESS, value) => {
@@ -23,10 +24,11 @@ export default async (web3, signer, CONTRACT_ADDRESS, value) => {
   };
 
   const pouchInstance = new web3.eth.Contract(Pouch.abi, CONTRACT_ADDRESS);
-
+  let nonce = await pouchInstance.methods.nonces(signer).call();
   const message = {
     holder: signer,
-    value: value
+    value: value,
+    nonce: nonce
   };
 
   let typedData = JSON.stringify({
@@ -54,7 +56,7 @@ export default async (web3, signer, CONTRACT_ADDRESS, value) => {
       // The signature is now comprised of r, s, and v.
       console.log("signature: ", signature);
       await pouchInstance.methods
-        .withdraw(signer, value, r, s, v)
+        .withdraw(signer, value, nonce, r, s, v)
         .send({ from: signer, gas: 4000000 });
     }
   );

@@ -65,16 +65,16 @@ export default class Functions extends Component {
   };
 
   render() {
-    const { addAmount, withdrawAmount, sendAmount, sendAddress } = this.state;
+    const { addAmount, withdrawAmount } = this.state;
 
-    const { accounts } = this.props;
+    const { accounts, balance } = this.props;
     return (
       <div className="container">
         <div className="row justify-content-center pt-5">
           <div className="col-8">
             <div className="card text-white bg-danger m-auto p-3 shadow">
               <h6 className="text-center">Wallet Balance</h6>
-              <h1 className="text-center bold">$100</h1>
+              <h1 className="text-center bold">${balance}</h1>
               <p className="text-center">{accounts && accounts[0]}</p>
             </div>
           </div>

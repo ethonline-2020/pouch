@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import PouchContract from "./contracts/PouchDelegate.json";
 import Pouch from "./contracts/Pouch.json";
 import TokenInterface from "./contracts/TokenInterface.json";
-import PTokenInterface from "./contracts/EIP20Interface.json";
 import getWeb3 from "./web3/getWeb3";
 import "./App.css";
 import permitDai from "./functions/permitDai";
@@ -22,7 +21,8 @@ class App extends Component {
     accounts: null,
     contract: null,
     daiContract: null,
-    contractAddress: null
+    contractAddress: null,
+    balance: 0
     // pDaiContract: null
   };
 
@@ -65,9 +65,10 @@ class App extends Component {
           contractAddress: deployedNetwork && deployedNetwork.address
           // pDaiContract
         },
-        // this.runExample
-
-        this.getAllowance
+        () => {
+          this.getAllowance();
+          this.getBalance();
+        }
       );
     } catch (error) {
       // Catch any errors for any of the above operations.
@@ -79,13 +80,7 @@ class App extends Component {
   };
 
   handleDeposit = async () => {
-    const {
-      web3,
-      accounts,
-      contract,
-      daiContract,
-      contractAddress
-    } = this.state;
+    const { web3, accounts, contractAddress } = this.state;
 
     // await contract.methods
     //   .deposit(accounts[0], "1000000000000000000")
@@ -111,32 +106,26 @@ class App extends Component {
   };
 
   getAllowance = async () => {
-    const {
-      web3,
-      accounts,
-      daiContract,
-      contractAddress
-      // pDaiContract
-    } = this.state;
+    const { accounts, daiContract, contractAddress } = this.state;
     const allowanceForDelegate = await daiContract.methods
       .allowance(accounts[0], contractAddress)
       .call();
-    const deployedNetwork = Pouch.networks["42"];
-    const allowanceForPouch = 10;
-    // await daiContract.methods
-    //   .allowance(accounts[0], deployedNetwork.address)
-    //   .call();
-
-    // const pDaiAllowance = await contractAddress.methods
-    //   .allowance(accounts[0], contractAddress)
-    //   .call();
-
-    // console.log(pDaiAllowance);
 
     this.setState({
-      allowanceForDelegate,
-      allowanceForPouch /* pDaiAllowance*/
+      allowanceForDelegate
     });
+  };
+
+  getBalance = async () => {
+    const {
+      web3,
+      accounts,
+      contractAddress,
+      contract
+      // pDaiContract
+    } = this.state;
+    const balance = await contract.methods.balanceOf(accounts[0]).call();
+    this.setState({ balance: web3.utils.fromWei(balance, "ether") });
   };
 
   signDaiForDelegate = async () => {
@@ -160,7 +149,8 @@ class App extends Component {
       accounts,
       web3,
       contractAddress,
-      allowanceForDelegate
+      allowanceForDelegate,
+      balance
     } = this.state;
     if (!this.state.web3) {
       return (
@@ -177,6 +167,7 @@ class App extends Component {
             <h1 className="text-center bold">Welcome to Pouch</h1>
             {allowanceForDelegate > 0 ? (
               <Functions
+                balance={balance}
                 accounts={accounts}
                 web3={web3}
                 contractAddress={contractAddress}

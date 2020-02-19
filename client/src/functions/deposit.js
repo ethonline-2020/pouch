@@ -9,7 +9,8 @@ const domainSchema = [
 
 const depositSchema = [
   { name: "holder", type: "address" },
-  { name: "value", type: "uint256" }
+  { name: "value", type: "uint256" },
+  { name: "nonce", type: "uint256" }
 ];
 
 export default async (web3, signer, CONTRACT_ADDRESS, value) => {
@@ -23,11 +24,14 @@ export default async (web3, signer, CONTRACT_ADDRESS, value) => {
   };
   // const deployedNetwork = Pouch.networks["42"];
   // console.log(deployedNetwork.address);
+  const deployedNetwork = Pouch.networks["42"];
   const pouchInstance = new web3.eth.Contract(Pouch.abi, CONTRACT_ADDRESS);
-
+  let nonce = await pouchInstance.methods.nonces(signer).call();
+  // console.log(nonce);
   const message = {
     holder: signer,
-    value: value
+    value: value,
+    nonce: nonce
   };
 
   let typedData = JSON.stringify({
@@ -61,6 +65,7 @@ export default async (web3, signer, CONTRACT_ADDRESS, value) => {
         .deposit(
           signer,
           value,
+          nonce,
           r,
           s,
           v

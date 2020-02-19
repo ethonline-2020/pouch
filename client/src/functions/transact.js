@@ -10,7 +10,8 @@ const domainSchema = [
 const transactSchema = [
   { name: "holder", type: "address" },
   { name: "to", type: "address" },
-  { name: "value", type: "uint256" }
+  { name: "value", type: "uint256" },
+  { name: "nonce", type: "uint256" }
 ];
 
 export default async (web3, signer, CONTRACT_ADDRESS, value, recipient) => {
@@ -23,12 +24,14 @@ export default async (web3, signer, CONTRACT_ADDRESS, value, recipient) => {
     verifyingContract: CONTRACT_ADDRESS
   };
 
+  // const deployedNetwork = Pouch.networks["42"];
   const pouchInstance = new web3.eth.Contract(Pouch.abi, CONTRACT_ADDRESS);
-
+  let nonce = await pouchInstance.methods.nonces(signer).call();
   const message = {
     holder: signer,
     to: recipient,
-    value: value
+    value: value,
+    nonce: nonce
   };
 
   let typedData = JSON.stringify({
@@ -56,7 +59,7 @@ export default async (web3, signer, CONTRACT_ADDRESS, value, recipient) => {
       // The signature is now comprised of r, s, and v.
       console.log("signature: ", signature);
       await pouchInstance.methods
-        .transact(signer, recipient, value, r, s, v)
+        .transact(signer, recipient, value, nonce, r, s, v)
         .send({ from: signer, gas: 4000000 });
     }
   );
