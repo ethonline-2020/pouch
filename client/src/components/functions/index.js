@@ -95,7 +95,10 @@ export default class Functions extends Component {
                 className="btn btn-success text-center btn-lg"
                 onClick={this.handleDeposit}
               >
-                Add {addAmount ? `${addAmount} DAI` : ""} &#x1F4B0;&#x1F525;
+                Add {addAmount ? `${addAmount} DAI` : ""}{" "}
+                <span role="img" aria-label="withdraw">
+                  &#x1F4B0;&#x1F525;
+                </span>
               </button>
             </div>
           </div>
@@ -115,7 +118,9 @@ export default class Functions extends Component {
                 onClick={this.handleWithdraw}
               >
                 Withdraw {withdrawAmount ? `${withdrawAmount} DAI ` : " "}
-                &#x1F911;&#x26A1;
+                <span role="img" aria-label="withdraw">
+                  &#x1F911;&#x26A1;
+                </span>
               </button>
             </div>
           </div>
@@ -143,7 +148,10 @@ export default class Functions extends Component {
                 className="btn btn-dark text-center btn-lg"
                 onClick={this.handleTransact}
               >
-                Send &#x1F4B8;&#x1F4AF;
+                Send{" "}
+                <span role="img" aria-label="withdraw">
+                  &#x1F4B8;&#x1F4AF;
+                </span>
               </button>
             </div>
           </div>

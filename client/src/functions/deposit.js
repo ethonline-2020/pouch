@@ -22,9 +22,7 @@ export default async (web3, signer, CONTRACT_ADDRESS, value) => {
     chainId: "42",
     verifyingContract: CONTRACT_ADDRESS
   };
-  // const deployedNetwork = Pouch.networks["42"];
-  // console.log(deployedNetwork.address);
-  const deployedNetwork = Pouch.networks["42"];
+
   const pouchInstance = new web3.eth.Contract(Pouch.abi, CONTRACT_ADDRESS);
   let nonce = await pouchInstance.methods.nonces(signer).call();
   // console.log(nonce);

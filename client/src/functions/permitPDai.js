@@ -1,5 +1,4 @@
 import PTokenInterface from "../contracts/PouchDelegate.json"; // TODO: change this
-import { PDAI_ADDRESS } from "../constants";
 
 const domainSchema = [
   { name: "name", type: "string" },

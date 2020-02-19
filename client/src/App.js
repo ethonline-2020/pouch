@@ -9,7 +9,6 @@ import permitPDai from "./functions/permitPDai";
 import depositDai from "./functions/deposit";
 import withdrawDai from "./functions/withdraw";
 import transactDai from "./functions/transact";
-import { PDAI_ADDRESS } from "./constants";
 import Functions from "./components/functions";
 
 class App extends Component {
@@ -23,7 +22,6 @@ class App extends Component {
     daiContract: null,
     contractAddress: null,
     balance: 0
-    // pDaiContract: null
   };
 
   componentDidMount = async () => {
@@ -46,13 +44,6 @@ class App extends Component {
         TokenInterface.abi,
         "0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa"
       );
-
-      // const pDaiContract = new web3.eth.Contract(
-      //   PTokenInterface.abi,
-      //   PDAI_ADDRESS
-      // );
-
-      // await approveDAI(100, { from: accounts[0], gas: "3000000" });
 
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
@@ -82,9 +73,6 @@ class App extends Component {
   handleDeposit = async () => {
     const { web3, accounts, contractAddress } = this.state;
 
-    // await contract.methods
-    //   .deposit(accounts[0], "1000000000000000000")
-    //   .send({ from: accounts[0], gas: 4000000 });
     await depositDai(web3, accounts[0], contractAddress, "1000000000000000000");
   };
 
@@ -120,7 +108,6 @@ class App extends Component {
     const {
       web3,
       accounts,
-      contractAddress,
       contract
       // pDaiContract
     } = this.state;
@@ -136,7 +123,7 @@ class App extends Component {
   signDaiForPouch = async () => {
     const deployedNetwork = Pouch.networks["42"];
 
-    const { web3, accounts, contractAddress } = this.state;
+    const { web3, accounts } = this.state;
     await permitDai(web3, accounts[0], deployedNetwork.address);
   };
 
@@ -176,14 +163,6 @@ class App extends Component {
               <div className="container">
                 <div className="text-center">Please sign and permit DAI.</div>
                 <div className="d-flex row justify-content-center pt-5">
-                  {/* <button
-                    type="button"
-                    className="btn btn-dark text-center btn-lg mx-3"
-                    onClick={this.signDaiForPouch}
-                    disabled={allowanceForPouch > 0}
-                  >
-                    Sign & Permit DAI (Pouch) &#x1F4AF;
-                  </button> */}
                   <button
                     type="button"
                     className="btn btn-primary text-center btn-lg mx-3"
