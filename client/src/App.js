@@ -161,7 +161,9 @@ class App extends Component {
               />
             ) : (
               <div className="container">
-                <div className="text-center">Please sign and permit DAI.</div>
+                <div className="text-center">
+                  Create your smart wallet with a single click!
+                </div>
                 <div className="d-flex row justify-content-center pt-5">
                   <button
                     type="button"
@@ -169,7 +171,8 @@ class App extends Component {
                     onClick={this.signDaiForDelegate}
                     disabled={allowanceForDelegate > 0}
                   >
-                    Sign & Permit DAI (Delegate)
+                    {/* Sign & Permit DAI */}
+                    Create Wallet
                   </button>
                 </div>
               </div>
