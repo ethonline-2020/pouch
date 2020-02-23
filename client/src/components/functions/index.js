@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import depositDai from "../../functions/deposit";
 import withdrawDai from "../../functions/withdraw";
 import transactDai from "../../functions/transact";
+import "./styles.css";
 
 export default class Functions extends Component {
   constructor() {
@@ -69,8 +70,8 @@ export default class Functions extends Component {
 
     const { accounts, balance } = this.props;
     return (
-      <div className="container">
-        <div className="row justify-content-center pt-5">
+      <div className="container-fluid mt-4">
+        {/* <div className="row justify-content-center pt-5">
           <div className="col-8">
             <div className="card text-white bg-danger m-auto p-3 shadow">
               <h6 className="text-center">Wallet Balance</h6>
@@ -78,11 +79,11 @@ export default class Functions extends Component {
               <p className="text-center">{accounts && accounts[0]}</p>
             </div>
           </div>
-        </div>
+        </div> */}
         <div className="row justify-content-center pt-5">
-          <div className="col-4">
-            <div className="card bg-light m-auto p-3 shadow border-light">
-              <h6 className="text-center">Add money</h6>
+          <div className="col-6">
+            <div className="function-block add text-white m-auto p-5 shadow border-light">
+              <h4 className="text-center">Add Money</h4>
               <input
                 className="form-control form-control-lg my-3"
                 type="number"
@@ -92,7 +93,7 @@ export default class Functions extends Component {
               />
               <button
                 type="button"
-                className="btn btn-success text-center btn-lg"
+                className="btn btn-success col-12 btn-lg"
                 onClick={this.handleDeposit}
               >
                 Add {addAmount ? `${addAmount} DAI` : ""}{" "}
@@ -102,9 +103,9 @@ export default class Functions extends Component {
               </button>
             </div>
           </div>
-          <div className="col-4">
-            <div className="card bg-light m-auto p-3 shadow border-light">
-              <h6 className="text-center">Withdraw money</h6>
+          <div className="col-6">
+            <div className="function-block withdraw text-white m-auto p-5 shadow border-light">
+              <h4 className="text-center">Withdraw Money</h4>
               <input
                 className="form-control form-control-lg my-3"
                 type="number"
@@ -114,7 +115,7 @@ export default class Functions extends Component {
               />
               <button
                 type="button"
-                className="btn btn-danger text-center btn-lg"
+                className="btn btn-danger col-12 btn-lg"
                 onClick={this.handleWithdraw}
               >
                 Withdraw {withdrawAmount ? `${withdrawAmount} DAI ` : " "}
@@ -126,9 +127,9 @@ export default class Functions extends Component {
           </div>
         </div>
         <div className="row justify-content-center pt-5">
-          <div className="col-8">
-            <div className="card bg-light m-auto p-3 shadow border-light">
-              <h6 className="text-center">Send Money</h6>
+          <div className="col-6">
+            <div className="function-block send bg-light m-auto p-5 shadow border-light">
+              <h4 className="text-center">Send Money</h4>
               <input
                 className="form-control form-control-lg my-1"
                 type="text"
@@ -145,14 +146,22 @@ export default class Functions extends Component {
               />
               <button
                 type="button"
-                className="btn btn-dark text-center btn-lg"
+                className="btn btn-primary text-center btn-lg col-12"
                 onClick={this.handleTransact}
               >
                 Send{" "}
-                <span role="img" aria-label="withdraw">
+                <span role="img" aria-label="send">
                   &#x1F4B8;&#x1F4AF;
                 </span>
               </button>
+            </div>
+          </div>
+          <div className="col-6">
+            <div className="function-block send bg-light m-auto p-5 shadow border-light">
+              <h4 className="text-center">
+                Send more than 10 DAI and get a chance to win a scratch card
+                prize upto 1,000 DAI!
+              </h4>
             </div>
           </div>
         </div>
