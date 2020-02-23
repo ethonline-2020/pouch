@@ -11,6 +11,7 @@ import withdrawDai from "./functions/withdraw";
 import transactDai from "./functions/transact";
 import Functions from "./components/functions";
 import MainApp from "./pages/app";
+import { Switch, Route } from "react-router-dom";
 
 class App extends Component {
   state = {
@@ -22,7 +23,8 @@ class App extends Component {
     contract: null,
     daiContract: null,
     contractAddress: null,
-    balance: 0
+    balance: 0,
+    daiBalance: 0
   };
 
   componentDidMount = async () => {
@@ -60,6 +62,7 @@ class App extends Component {
         () => {
           this.getAllowance();
           this.getBalance();
+          this.getDaiBalance();
         }
       );
     } catch (error) {
@@ -116,6 +119,12 @@ class App extends Component {
     this.setState({ balance: web3.utils.fromWei(balance, "ether") });
   };
 
+  getDaiBalance = async () => {
+    const { web3, accounts, daiContract } = this.state;
+    const daiBalance = await daiContract.methods.balanceOf(accounts[0]).call();
+    this.setState({ daiBalance: web3.utils.fromWei(daiBalance, "ether") });
+  };
+
   signDaiForDelegate = async () => {
     const { web3, accounts, contractAddress } = this.state;
     await permitDai(web3, accounts[0], contractAddress);
@@ -138,7 +147,8 @@ class App extends Component {
       web3,
       contractAddress,
       allowanceForDelegate,
-      balance
+      balance,
+      daiBalance
     } = this.state;
     if (!this.state.web3) {
       return (
@@ -149,12 +159,21 @@ class App extends Component {
     }
     console.log("delegate allowance:", allowanceForDelegate);
     return (
-      <MainApp
-        balance={balance}
-        accounts={accounts}
-        web3={web3}
-        contractAddress={contractAddress}
-      />
+      <Switch>
+        <Route
+          exact
+          path="/"
+          render={() => (
+            <MainApp
+              balance={balance}
+              accounts={accounts}
+              web3={web3}
+              contractAddress={contractAddress}
+              daiBalance={daiBalance}
+            />
+          )}
+        />
+      </Switch>
     );
 
     // return (

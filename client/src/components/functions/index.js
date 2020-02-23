@@ -68,7 +68,6 @@ export default class Functions extends Component {
   render() {
     const { addAmount, withdrawAmount } = this.state;
 
-    const { accounts, balance } = this.props;
     return (
       <div className="container-fluid mt-4">
         {/* <div className="row justify-content-center pt-5">
