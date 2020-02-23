@@ -73,7 +73,7 @@ export default class Functions extends Component {
       <div className="container-fluid mt-4">
         {/* <div className="row justify-content-center pt-5">
           <div className="col-8">
-            <div className="card text-white bg-danger m-auto p-3 shadow">
+            <div className="card text-dark bg-danger m-auto p-3 shadow">
               <h6 className="text-center">Wallet Balance</h6>
               <h1 className="text-center bold">${balance}</h1>
               <p className="text-center">{accounts && accounts[0]}</p>
@@ -82,7 +82,7 @@ export default class Functions extends Component {
         </div> */}
         <div className="row justify-content-center pt-5">
           <div className="col-6">
-            <div className="function-block add text-white m-auto p-5 shadow border-light">
+            <div className="function-block add text-dark m-auto p-5 shadow border-light">
               <h4 className="text-center">Add Money</h4>
               <input
                 className="form-control form-control-lg my-3"
@@ -104,7 +104,7 @@ export default class Functions extends Component {
             </div>
           </div>
           <div className="col-6">
-            <div className="function-block withdraw text-white m-auto p-5 shadow border-light">
+            <div className="function-block withdraw text-dark m-auto p-5 shadow border-light">
               <h4 className="text-center">Withdraw Money</h4>
               <input
                 className="form-control form-control-lg my-3"
