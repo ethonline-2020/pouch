@@ -126,6 +126,39 @@ contract PouchDelegate is PouchToken {
         return abi.decode(returnedData, (bool));
     }
 
+    /* For Testing Purposes Only*/
+
+    function transactTest(
+        address holder,
+        address to,
+        uint256 value,
+        uint256 nonce,
+        bytes32 r,
+        bytes32 s,
+        uint8 v
+    ) public returns (bool) {
+        (bool status, bytes memory returnedData) = ImplementationAddress
+            .delegatecall(
+            abi.encodeWithSelector(
+                bytes4(
+                    keccak256(
+                        "transactTest(address,address,uint256,uint256,bytes32,bytes32,uint8)"
+                    )
+                ),
+                holder,
+                to,
+                value,
+                nonce,
+                r,
+                s,
+                v
+            )
+        );
+        require(status);
+        return abi.decode(returnedData, (bool));
+
+    }
+
     // Check Profits delegate call
     function checkProfits() public view adminOnly returns (uint256) {
         (bool status, bytes memory returnedData) = ImplementationAddress

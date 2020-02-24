@@ -168,10 +168,11 @@ contract Pouch is PTokenInterface, PouchStorage {
             uint256 profitInDai = checkProfits().mul(getExchangeRate());
             uint256 checkProfitInDai = profitInDai.div(1e18);
             if (checkProfitInDai >= 1e10) {
-                cDai.redeemUnderlying(1e10);
-                daiToken.transfer(holder, 1e10);
-                emit Reward(address(this), holder, 1e10);
-                rewards[holder] += 1e10;
+                uint256 userRewarded = _randomReward();
+                cDai.redeemUnderlying(userRewarded);
+                daiToken.transfer(holder, userRewarded);
+                emit Reward(address(this), holder, userRewarded);
+                rewards[holder] += userRewarded;
                 return true;
             }
         }
@@ -232,7 +233,7 @@ contract Pouch is PTokenInterface, PouchStorage {
         uint256 randomnumber = uint256(
             keccak256(abi.encodePacked(now, msg.sender, block.number))
         ) %
-            3;
+            2;
         return randomnumber.mul(1e10);
     }
 
