@@ -19,7 +19,7 @@ export default async (web3, signer, CONTRACT_ADDRESS, value) => {
   const domainData = {
     name: "Pouch Token",
     version: "1",
-    chainId: "42",
+    chainId: 42,
     verifyingContract: CONTRACT_ADDRESS
   };
 
@@ -56,19 +56,8 @@ export default async (web3, signer, CONTRACT_ADDRESS, value) => {
       const v = parseInt(signature.substring(128, 130), 16);
       // The signature is now comprised of r, s, and v.
       console.log("signature: ", signature);
-      console.log("r", r);
-      console.log("s", s);
-      console.log("v", v);
       await pouchInstance.methods
-        .deposit(
-          signer,
-          value,
-          nonce,
-          r,
-          s,
-          v
-          // "0x2cf8a1fcb9b15d68b17362da0fad585e8b2be6ab5eda314493686d4b01f2b97d"
-        )
+        .deposit(signer, value, nonce, r, s, v)
         .send({ from: signer, gas: 2000000 });
     }
   );

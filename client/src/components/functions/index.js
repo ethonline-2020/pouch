@@ -96,9 +96,9 @@ export default class Functions extends Component {
                 onClick={this.handleDeposit}
               >
                 Add {addAmount ? `${addAmount} DAI` : ""}{" "}
-                <span role="img" aria-label="withdraw">
+                {/* <span role="img" aria-label="withdraw">
                   &#x1F4B0;&#x1F525;
-                </span>
+                </span> */}
               </button>
             </div>
           </div>
@@ -118,9 +118,6 @@ export default class Functions extends Component {
                 onClick={this.handleWithdraw}
               >
                 Withdraw {withdrawAmount ? `${withdrawAmount} DAI ` : " "}
-                <span role="img" aria-label="withdraw">
-                  &#x1F911;&#x26A1;
-                </span>
               </button>
             </div>
           </div>
@@ -149,14 +146,11 @@ export default class Functions extends Component {
                 onClick={this.handleTransact}
               >
                 Send{" "}
-                <span role="img" aria-label="send">
-                  &#x1F4B8;&#x1F4AF;
-                </span>
               </button>
             </div>
           </div>
           <div className="col-6">
-            <div className="function-block send bg-light m-auto p-5 shadow border-light">
+            <div className="function-block text-white send send-info bg-light m-auto p-5 shadow border-light">
               <h4 className="text-center">
                 Send more than 10 DAI and get a chance to win a scratch card
                 prize upto 1,000 DAI!
