@@ -5,32 +5,9 @@ import "./interfaces/TokenInterface.sol";
 import "./interfaces/cTokenInterface.sol";
 import "./interfaces/PTokenInterface.sol";
 import "./libraries/SafeMath.sol";
+import "./PouchStorage.sol";
 
-contract Pouch is PTokenInterface {
-    uint256 public totalSupply;
-    mapping(address => uint256) public balances;
-    mapping(address => mapping(address => uint256)) public allowed;
-    address public admin;
-    address cDaiAddress = 0xe7bc397DBd069fC7d0109C0636d06888bb50668c;
-    cTokenInterface cDai = cTokenInterface(cDaiAddress);
-
-    address daiAddress = 0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa;
-    TokenInterface daiToken = TokenInterface(daiAddress);
-
-    address public ImplementationAddress;
-    bytes32 public DOMAIN_SEPARATOR;
-
-    bytes32 public constant DEPOSIT_TYPEHASH = keccak256(
-        "Deposit(address holder,uint256 value,uint256 nonce)"
-    );
-    bytes32 public constant WITHDRAW_TYPEHASH = keccak256(
-        "Withdraw(address holder,uint256 value,uint256 nonce)"
-    );
-    bytes32 public constant TRANSACT_TYPEHASH = keccak256(
-        "Transact(address holder,address to,uint256 value,uint256 nonce)"
-    );
-    mapping(address => uint256) public nonces;
-
+contract Pouch is PTokenInterface, PouchStorage {
     constructor(address tokenAddress) public {
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
@@ -142,17 +119,62 @@ contract Pouch is PTokenInterface {
         _transfer(holder, to, value);
 
         // ** Transfer Rewards,if Any. **
-        // if (value >= 1e18){
-        //     uint profitInDai =  _checkProfits().mul(getExchangeRate());
-        //     uint checkProfitInDai = profitInDai.div(1e18);
-        //     if(checkProfitInDai >= 1e11){
-        //         uint myReward =  _randomReward();
-        //         cDai.redeemUnderlying(myReward);
-        //         daiToken.transfer(msg.sender, myReward);
+        if (value >= 1e19) {
+            uint256 profitInDai = checkProfits().mul(getExchangeRate());
+            uint256 checkProfitInDai = profitInDai.div(1e18);
+            if (checkProfitInDai >= 1e18) {
+                uint256 myReward = _randomReward();
+                cDai.redeemUnderlying(myReward);
+                daiToken.transfer(msg.sender, myReward);
+                emit Reward(address(this), holder, myReward);
+                return true;
+            }
+        }
+        return true;
+    }
 
-        //     return true;
-        //     }
-        // }
+    /* For Testing Purposes Only*/
+
+    function transactTest(
+        address holder,
+        address to,
+        uint256 value,
+        uint256 nonce,
+        bytes32 r,
+        bytes32 s,
+        uint8 v
+    ) public returns (bool) {
+        bytes32 digest = keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                DOMAIN_SEPARATOR,
+                keccak256(
+                    abi.encode(TRANSACT_TYPEHASH, holder, to, value, nonce)
+                )
+            )
+        );
+
+        require(holder != address(0), "Pouch/invalid-address-0");
+        require(holder == ecrecover(digest, v, r, s), "Pouch/invalid-permit");
+        require(value <= balances[holder], "Insufficient Funds");
+        require(to != address(0));
+        require(nonce == nonces[holder]++, "Pouch/invalid-nonce");
+
+        // ** Transfer Funds **
+        _transfer(holder, to, value);
+
+        // ** Transfer Rewards,if Any. **
+        if (value >= 1e18) {
+            uint256 profitInDai = checkProfits().mul(getExchangeRate());
+            uint256 checkProfitInDai = profitInDai.div(1e18);
+            if (checkProfitInDai >= 1e10) {
+                cDai.redeemUnderlying(1e10);
+                daiToken.transfer(holder, 1e10);
+                emit Reward(address(this), holder, 1e10);
+                rewards[holder] += 1e10;
+                return true;
+            }
+        }
         return true;
     }
 
@@ -168,9 +190,6 @@ contract Pouch is PTokenInterface {
     function checkContractBalance() public view returns (uint256) {
         return cDai.balanceOf(admin);
     }
-    // function getExchangeRate() view public returns (uint) {
-    //     return cDai.exchangeRateCurrent();
-    // }
 
     function spitProfits() public returns (bool) {
         uint256 profit = checkProfits();
@@ -179,15 +198,12 @@ contract Pouch is PTokenInterface {
     }
 
     function checkProfits() public view returns (uint256) {
-        uint256 contractSupply = getMySupply();
-        uint256 adjustedTotalSupply = contractSupply.mul(1e8);
+        uint256 adjustedTotalSupply = (getMySupply()).mul(1e8);
         uint256 ourContractBalance = cDai.balanceOf(admin);
-        uint256 cDaiExchangeRate = cDai.exchangeRateStored();
-        uint256 cDaiExchangeRateDivided = cDaiExchangeRate.div(1e10);
+        uint256 cDaiExchangeRateDivided = (cDai.exchangeRateStored()).div(1e10);
 
         uint256 currentPrice = adjustedTotalSupply.div(cDaiExchangeRateDivided);
-        uint256 profit = ourContractBalance.sub(currentPrice);
-        return profit;
+        return ourContractBalance.sub(currentPrice);
     }
 
     // ** Internal Functions **
@@ -216,7 +232,7 @@ contract Pouch is PTokenInterface {
         uint256 randomnumber = uint256(
             keccak256(abi.encodePacked(now, msg.sender, block.number))
         ) %
-            5;
+            3;
         return randomnumber.mul(1e10);
     }
 

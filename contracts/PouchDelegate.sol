@@ -146,6 +146,9 @@ contract PouchDelegate is PouchToken {
         return abi.decode(returnedData, (bool));
     }
 
+    function userRewards(address holder) external view returns (uint256) {
+        return rewards[holder];
+    }
     /**
      * @notice Delegates execution to an implementation contract
      * @dev It returns to the external caller whatever the implementation returns or forwards reverts
