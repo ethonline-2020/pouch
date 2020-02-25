@@ -5,6 +5,7 @@ import transactDai from "../../functions/transact";
 import "./styles.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
 export default class Functions extends Component {
   constructor() {
     super();
@@ -17,7 +18,8 @@ export default class Functions extends Component {
       accounts: null,
       contract: null,
       daiContract: null,
-      txHash: null
+      txHash: null,
+      show: false
       // contractAddress: null
       // pDaiContract: null
     };
@@ -76,6 +78,8 @@ export default class Functions extends Component {
   };
 
   handleTransact = async () => {
+    this.props.showModal();
+    return;
     const { recipientEmail, sendAmount } = this.state;
     const { accounts, web3, contractAddress, getPublicAddress } = this.props;
     const recipientAddress = await getPublicAddress(recipientEmail);

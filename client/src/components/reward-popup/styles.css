@@ -1,0 +1,9 @@
+.big {
+  font-size: 48px;
+  font-family: "Gilroy-Bold" !important;
+}
+
+.small {
+  font-size: 24px;
+  font-family: "Gilroy-Regular" !important;
+}

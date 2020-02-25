@@ -7,7 +7,7 @@ import PouchContract from "../../contracts/PouchDelegate.json";
 import TokenInterface from "../../contracts/TokenInterface.json";
 import permitDai from "../../functions/permitDai";
 import TorusLogin from "../torus-login";
-
+import RewardPopup from "../reward-popup";
 export default class MainApp extends Component {
   state = {
     account: null,
@@ -17,7 +17,8 @@ export default class MainApp extends Component {
     verifierId: null,
     buildEnv: "testing",
     accounts: null,
-    userInfo: null
+    userInfo: null,
+    show: false
   };
 
   async componentDidMount() {
@@ -163,6 +164,14 @@ export default class MainApp extends Component {
     await permitDai(web3, accounts[0], contractAddress);
   };
 
+  showModal = () => {
+    this.setState({ show: true });
+  };
+
+  closeModal = () => {
+    this.setState({ show: false });
+  };
+
   render() {
     let {
       accounts,
@@ -170,10 +179,12 @@ export default class MainApp extends Component {
       userInfo,
       daiBalance,
       contractAddress,
-      allowanceForDelegate
+      allowanceForDelegate,
+      show
     } = this.state;
     return (
       <div className="App">
+        <RewardPopup show={show} close={this.closeModal} />
         {!accounts && <TorusLogin enableTorus={this.enableTorus} />}
         {accounts &&
           accounts[0] &&
@@ -196,6 +207,7 @@ export default class MainApp extends Component {
                     web3={web3Obj.web3}
                     contractAddress={contractAddress}
                     getPublicAddress={this.getPublicAddress}
+                    showModal={this.showModal}
                   />
                 </div>
               </div>
