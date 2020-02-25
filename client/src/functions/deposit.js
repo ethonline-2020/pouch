@@ -13,7 +13,7 @@ const depositSchema = [
   { name: "nonce", type: "uint256" }
 ];
 
-export default async (web3, signer, CONTRACT_ADDRESS, value) => {
+export default async (web3, signer, CONTRACT_ADDRESS, value, cb) => {
   // const web3 = new Web3(window.web3.currentProvider);
   console.log(CONTRACT_ADDRESS);
   const domainData = {
@@ -58,7 +58,8 @@ export default async (web3, signer, CONTRACT_ADDRESS, value) => {
       console.log("signature: ", signature);
       await pouchInstance.methods
         .deposit(signer, value, nonce, r, s, v)
-        .send({ from: signer, gas: 2000000 });
+        .send({ from: signer, gas: 2000000 })
+        .on("transactionHash", hash => cb(hash));
     }
   );
 };

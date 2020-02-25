@@ -101,13 +101,12 @@ export default class MainApp extends Component {
     });
   };
 
-  getPublicAddress = () => {
-    web3Obj.torus
-      .getPublicAddress({
-        verifier: this.state.selectedVerifier,
-        verifierId: this.state.verifierId
-      })
-      .then(this.console);
+  getPublicAddress = async recipientEmail => {
+    const recipientAddress = await web3Obj.torus.getPublicAddress({
+      verifier: this.state.selectedVerifier,
+      verifierId: recipientEmail
+    });
+    return recipientAddress;
   };
 
   onSelectedVerifierChanged = event => {
@@ -196,6 +195,7 @@ export default class MainApp extends Component {
                     accounts={accounts}
                     web3={web3Obj.web3}
                     contractAddress={contractAddress}
+                    getPublicAddress={this.getPublicAddress}
                   />
                 </div>
               </div>

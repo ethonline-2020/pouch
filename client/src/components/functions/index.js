@@ -3,7 +3,8 @@ import depositDai from "../../functions/deposit";
 import withdrawDai from "../../functions/withdraw";
 import transactDai from "../../functions/transact";
 import "./styles.css";
-
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 export default class Functions extends Component {
   constructor() {
     super();
@@ -11,14 +12,34 @@ export default class Functions extends Component {
       addAmount: null,
       withdrawAmount: null,
       sendAmount: null,
-      sendAddress: null,
+      recipientEmail: null,
       web3: null,
       accounts: null,
       contract: null,
-      daiContract: null
+      daiContract: null,
+      txHash: null
       // contractAddress: null
       // pDaiContract: null
     };
+  }
+
+  showToasts(txHash) {
+    toast("🦄 Tx Pending");
+    setTimeout(() => {
+      toast("🦄 Tx added to block. Awaiting confirmations");
+    }, 3000);
+    setTimeout(() => {
+      toast.success(
+        <a
+          href={`https://kovan.etherscan.io/tx/${txHash}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="tx-link"
+        >
+          Tx Confirmed! Click here to view.
+        </a>
+      );
+    }, 8000);
   }
 
   handleDeposit = async () => {
@@ -30,10 +51,12 @@ export default class Functions extends Component {
       web3,
       accounts[0],
       contractAddress,
-      web3.utils.toWei(addAmount, "ether")
+      web3.utils.toWei(addAmount, "ether"),
+      txHash => {
+        this.setState({ txHash, addAmount: "" });
+        this.showToasts(txHash);
+      }
     );
-
-    this.setState({ addAmount: "" });
   };
 
   handleWithdraw = async () => {
@@ -44,20 +67,28 @@ export default class Functions extends Component {
       web3,
       accounts[0],
       contractAddress,
-      web3.utils.toWei(withdrawAmount, "ether")
+      web3.utils.toWei(withdrawAmount, "ether"),
+      txHash => {
+        this.setState({ txHash, withdrawAmount: "" });
+        this.showToasts(txHash);
+      }
     );
-    this.setState({ withdrawAmount: "" });
   };
 
   handleTransact = async () => {
-    const { sendAddress, sendAmount } = this.state;
-    const { accounts, web3, contractAddress } = this.props;
+    const { recipientEmail, sendAmount } = this.state;
+    const { accounts, web3, contractAddress, getPublicAddress } = this.props;
+    const recipientAddress = await getPublicAddress(recipientEmail);
+    console.log("reciever", recipientAddress);
     await transactDai(
       web3,
       accounts[0],
       contractAddress,
       web3.utils.toWei(sendAmount, "ether"),
-      sendAddress
+      recipientAddress,
+      txHash => {
+        this.showToasts(txHash);
+      }
     );
   };
 
@@ -66,8 +97,8 @@ export default class Functions extends Component {
   };
 
   render() {
-    const { addAmount, withdrawAmount } = this.state;
-
+    const { addAmount, withdrawAmount, txHash } = this.state;
+    console.log("txHash", txHash);
     return (
       <div className="container-fluid mt-4">
         {/* <div className="row justify-content-center pt-5">
@@ -128,9 +159,9 @@ export default class Functions extends Component {
               <h4 className="text-center">Send Money</h4>
               <input
                 className="form-control form-control-lg my-1"
-                type="text"
-                name="sendAddress"
-                placeholder="Enter address"
+                type="email"
+                name="recipientEmail"
+                placeholder="Enter email"
                 onChange={this.handleChange}
               />
               <input
@@ -158,6 +189,17 @@ export default class Functions extends Component {
             </div>
           </div>
         </div>
+        <ToastContainer
+          position="top-right"
+          autoClose={6000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick={false}
+          rtl={false}
+          pauseOnVisibilityChange
+          draggable
+          pauseOnHover
+        />
       </div>
     );
   }

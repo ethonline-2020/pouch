@@ -35,3 +35,13 @@
     #8e2de2
   ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
+
+.tx-link {
+  color: #fff;
+  text-decoration: none;
+}
+
+.tx-link:hover {
+  color: #fff;
+  text-decoration: none;
+}
