@@ -8,6 +8,7 @@ import TokenInterface from "../../contracts/TokenInterface.json";
 import permitDai from "../../functions/permitDai";
 import TorusLogin from "../torus-login";
 import RewardPopup from "../reward-popup";
+import CreateWallet from "../create-wallet";
 export default class MainApp extends Component {
   state = {
     account: null,
@@ -66,6 +67,8 @@ export default class MainApp extends Component {
         this.getBalance();
         this.getDaiBalance();
         this.getUserInfo();
+        this.listenToReward();
+        this.checkProfits();
       }
     );
     // web3Obj.web3.eth.getBalance(accounts[0]).then(balance => {
@@ -164,6 +167,35 @@ export default class MainApp extends Component {
     await permitDai(web3, accounts[0], contractAddress);
   };
 
+  listenToReward = async () => {
+    const { contract } = this.state;
+
+    contract.events
+      .Reward(
+        {
+          fromBlock: 0
+        },
+        function(error, event) {
+          console.log(event);
+        }
+      )
+      .on("data", function(event) {
+        console.log(event); // same results as the optional callback above
+      })
+      .on("changed", function(event) {
+        // remove event from local database
+      })
+      .on("error", console.error);
+  };
+
+  checkProfits = async () => {
+    const { contract } = this.state;
+    const profits = await contract.methods
+      .checkProfits()
+      .call({ from: "0x5222318905891Ae154c3FA5437830cAA86be5499" });
+    console.log("*******Profits********", profits);
+  };
+
   showModal = () => {
     this.setState({ show: true });
   };
@@ -213,22 +245,7 @@ export default class MainApp extends Component {
               </div>
             </div>
           ) : (
-            <div className="container">
-              <div className="text-center">
-                Create your smart wallet with a single click!
-              </div>
-              <div className="d-flex row justify-content-center pt-5">
-                <button
-                  type="button"
-                  className="btn btn-primary text-center btn-lg mx-3"
-                  onClick={this.signDaiForDelegate}
-                  disabled={allowanceForDelegate > 0}
-                >
-                  {/* Sign & Permit DAI */}
-                  Create Wallet
-                </button>
-              </div>
-            </div>
+            <CreateWallet signDaiForDelegate={this.signDaiForDelegate} />
           ))}
       </div>
     );

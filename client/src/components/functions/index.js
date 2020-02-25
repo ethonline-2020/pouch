@@ -78,8 +78,6 @@ export default class Functions extends Component {
   };
 
   handleTransact = async () => {
-    this.props.showModal();
-    return;
     const { recipientEmail, sendAmount } = this.state;
     const { accounts, web3, contractAddress, getPublicAddress } = this.props;
     const recipientAddress = await getPublicAddress(recipientEmail);
@@ -92,6 +90,7 @@ export default class Functions extends Component {
       recipientAddress,
       txHash => {
         this.showToasts(txHash);
+        this.props.showModal();
       }
     );
   };
