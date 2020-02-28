@@ -1,7 +1,7 @@
 import React from "react";
 import "./styles.css";
 
-export default function LeftMenu({ userInfo }) {
+export default function LeftMenu({ userInfo, totalRewards }) {
   console.log(userInfo);
   if (!userInfo)
     return (
@@ -31,7 +31,10 @@ export default function LeftMenu({ userInfo }) {
       <h3 className="text-primary my-4">Hey, {userInfo.name}</h3>
       <h3>Your Total Rewards:</h3>
       <div className="reward-block reward shadow">
-        <h1 className="text-center mt-3">$0</h1>
+        <h1 className="text-center mt-3">
+          ${parseFloat(totalRewards).toFixed(2)}{" "}
+          <span className="small">PCH</span>
+        </h1>
       </div>
 
       <div className="bottom-text">

@@ -49,3 +49,7 @@
     #8e2de2
   ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
+
+.small {
+  font-size: 16px;
+}

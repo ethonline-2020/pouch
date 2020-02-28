@@ -11,7 +11,7 @@ export default function RewardPopup({ show, close }) {
           <img src={TrophyImage} width="100" alt="reward" />
           <h3 className="mt-4">Wohooo! You just won:</h3>
           <h1 className="big mt-3">
-            $1.00 <span className="small">DAI</span>
+            $1.00 <span className="small">PCH</span>
           </h1>
         </div>
       </Modal>

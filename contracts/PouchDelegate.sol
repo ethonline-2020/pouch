@@ -62,7 +62,7 @@ contract PouchDelegate is PouchToken {
                 v
             )
         );
-        require(status);
+        require(status, "Delegate/deposit failed");
         return abi.decode(returnedData, (bool));
     }
 
@@ -91,7 +91,7 @@ contract PouchDelegate is PouchToken {
                 v
             )
         );
-        require(status);
+        require(status, "Delegate/withdraw failed");
         return abi.decode(returnedData, (bool));
     }
 
@@ -122,7 +122,7 @@ contract PouchDelegate is PouchToken {
                 v
             )
         );
-        require(status);
+        require(status, "Delegate/transact failed");
         return abi.decode(returnedData, (bool));
     }
 
@@ -154,7 +154,7 @@ contract PouchDelegate is PouchToken {
                 v
             )
         );
-        require(status);
+        require(status, "Delegate/transactTest failed");
         return abi.decode(returnedData, (bool));
 
     }
@@ -165,7 +165,7 @@ contract PouchDelegate is PouchToken {
             .staticcall(
             abi.encodeWithSelector(bytes4(keccak256("checkProfits()")))
         );
-        require(status);
+        require(status, "Delegate/checkProfits failed");
         return abi.decode(returnedData, (uint256));
     }
 
@@ -175,13 +175,13 @@ contract PouchDelegate is PouchToken {
             .delegatecall(
             abi.encodeWithSelector(bytes4(keccak256("spitProfits()")))
         );
-        require(status);
+        require(status, "Delegate/spitProfits failed");
         return abi.decode(returnedData, (bool));
     }
 
-    // function userRewards(address holder) external view returns (uint256) {
-    //     return rewards[holder];
-    // }
+    function userRewards(address holder) external view returns (uint256) {
+        return rewards[holder];
+    }
     /**
      * @notice Delegates execution to an implementation contract
      * @dev It returns to the external caller whatever the implementation returns or forwards reverts

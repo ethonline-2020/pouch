@@ -8,7 +8,7 @@ import "./libraries/SafeMath.sol";
 import "./PouchStorage.sol";
 
 contract Pouch is PTokenInterface, PouchStorage {
-    constructor(address tokenAddress) public {
+    constructor(address delegateAddress) public {
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
                 keccak256(
@@ -17,10 +17,10 @@ contract Pouch is PTokenInterface, PouchStorage {
                 keccak256("Pouch"),
                 keccak256("1"),
                 42, // kovan chainId
-                tokenAddress
+                delegateAddress
             )
         );
-        admin = tokenAddress;
+        admin = delegateAddress;
     }
 
     using SafeMath for uint256;
@@ -163,38 +163,20 @@ contract Pouch is PTokenInterface, PouchStorage {
         // ** Transfer Funds **
         _transfer(holder, to, value);
 
-        // ** Transfer Rewards,if Any. **
-        if (value >= 1e18) {
-            uint256 profitInDai = checkProfits().mul(getExchangeRate());
-            uint256 checkProfitInDai = profitInDai.div(1e18);
-            if (checkProfitInDai >= 1e2) {
-                uint256 userRewarded = _randomReward();
-                cDai.redeemUnderlying(userRewarded);
-                daiToken.transfer(holder, userRewarded);
-                emit Reward(address(this), holder, userRewarded);
-                rewards[holder] += userRewarded;
-                return true;
-            }
-        }
-        return true;
-    }
-
-    function getExchangeRate() public view returns (uint256) {
-        return cDai.exchangeRateStored();
-    }
-
-    function getMySupply() public view returns (uint256) {
-        TokenInterface pouch = TokenInterface(admin);
-        return pouch.totalSupply();
-    }
-
-    function checkContractBalance() public view returns (uint256) {
-        return cDai.balanceOf(admin);
-    }
-
-    function spitProfits() public returns (bool) {
-        uint256 profit = checkProfits();
-        cDai.transfer(msg.sender, profit);
+        // ** Transfer Rewards, 1 PCH token. **
+        _mint(holder, 1e18);
+        emit Reward(address(this), holder, 1e18);
+        rewards[holder] += 1e18;
+        // if (value >= 1e18) {
+        // uint256 profitInDai = checkProfits().mul(getExchangeRate());
+        // uint256 checkProfitInDai = profitInDai.div(1e18);
+        // if (checkProfitInDai >= 1e6) {
+        //     uint256 userRewarded = _randomReward();
+        //     cDai.redeemUnderlying(userRewarded);
+        //     daiToken.transfer(holder, userRewarded);
+        //     return true;
+        // }
+        // }
         return true;
     }
 
@@ -207,6 +189,24 @@ contract Pouch is PTokenInterface, PouchStorage {
         return ourContractBalance.sub(currentPrice);
     }
 
+    function spitProfits() public returns (bool) {
+        // uint256 profit = checkProfits();
+        // cDai.transfer(msg.sender, profit);
+        cDai.transfer(msg.sender, 100);
+        return true;
+    }
+    function getExchangeRate() public view returns (uint256) {
+        return cDai.exchangeRateStored();
+    }
+
+    function getMySupply() public view returns (uint256) {
+        TokenInterface pouch = TokenInterface(admin);
+        return pouch.totalSupply();
+    }
+
+    function checkContractBalance() public view returns (uint256) {
+        return cDai.balanceOf(admin);
+    }
     // ** Internal Functions **
 
     function _mint(address _to, uint256 _value)
@@ -234,7 +234,7 @@ contract Pouch is PTokenInterface, PouchStorage {
             keccak256(abi.encodePacked(now, msg.sender, block.number))
         ) %
             2;
-        return randomnumber.mul(1e2);
+        return randomnumber.mul(1e6);
     }
 
 }

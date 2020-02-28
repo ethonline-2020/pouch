@@ -79,7 +79,13 @@ export default class Functions extends Component {
 
   handleTransact = async () => {
     const { recipientEmail, sendAmount } = this.state;
-    const { accounts, web3, contractAddress, getPublicAddress } = this.props;
+    const {
+      accounts,
+      web3,
+      contractAddress,
+      getPublicAddress,
+      contract
+    } = this.props;
     const recipientAddress = await getPublicAddress(recipientEmail);
     console.log("reciever", recipientAddress);
     await transactDai(
@@ -91,6 +97,15 @@ export default class Functions extends Component {
       txHash => {
         this.showToasts(txHash);
         this.props.showModal();
+        contract.events.Reward(
+          {
+            fromBlock: 0
+          },
+          function(error, event) {
+            if (error) console.log(error);
+            console.log("REWARD EVENT:", event);
+          }
+        );
       }
     );
   };

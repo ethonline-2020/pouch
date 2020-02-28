@@ -7,7 +7,7 @@ module.exports = async function(deployer) {
    * Step 2: Deploy Pouch with address of PouchDelegate as constructor arg
    * Step 3: Call PouchDelegate.updateLogic with the Pouch contract address
    */
-  await deployer.deploy(PouchDelegate, 42);
+  // await deployer.deploy(PouchDelegate, 42);
   const pouchDelegateInstance = await PouchDelegate.deployed();
   console.log("PouchDelegate deployed at ", pouchDelegateInstance.address);
 

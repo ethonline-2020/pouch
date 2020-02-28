@@ -13,6 +13,7 @@ const web3Obj = {
       apiKey: "gKaGR4WUI.38121703-4858-4819-88e7-d2b20119dfbf"
     });
     const web3Inst = new Web3(biconomy);
+    // const web3Inst = new Web3(window.ethereum);
     web3Obj.web3 = web3Inst;
   },
   initialize: async function(buildEnv) {

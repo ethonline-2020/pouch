@@ -19,7 +19,8 @@ export default class MainApp extends Component {
     buildEnv: "testing",
     accounts: null,
     userInfo: null,
-    show: false
+    show: false,
+    totalRewards: 0
   };
 
   async componentDidMount() {
@@ -67,8 +68,8 @@ export default class MainApp extends Component {
         this.getBalance();
         this.getDaiBalance();
         this.getUserInfo();
-        this.listenToReward();
         this.checkProfits();
+        this.getUserRewards();
       }
     );
     // web3Obj.web3.eth.getBalance(accounts[0]).then(balance => {
@@ -87,22 +88,10 @@ export default class MainApp extends Component {
     }
   };
 
-  changeProvider = async () => {
-    await web3Obj.torus.setProvider({ host: "kovan" });
-    this.console("finished changing provider");
-  };
-
   getUserInfo = async () => {
     const userInfo = await web3Obj.torus.getUserInfo();
     // this.console(userInfo);
     this.setState({ userInfo });
-  };
-
-  logout = () => {
-    web3Obj.torus.cleanUp().then(() => {
-      this.setState({ account: "", balance: 0 });
-      sessionStorage.setItem("pageUsingTorus", false);
-    });
   };
 
   getPublicAddress = async recipientEmail => {
@@ -111,28 +100,6 @@ export default class MainApp extends Component {
       verifierId: recipientEmail
     });
     return recipientAddress;
-  };
-
-  onSelectedVerifierChanged = event => {
-    let placeholder = "Enter google email";
-    switch (event.target.value) {
-      case "google":
-        placeholder = "Enter google email";
-        break;
-      case "reddit":
-        placeholder = "Enter reddit username";
-        break;
-      case "discord":
-        placeholder = "Enter discord ID";
-        break;
-      default:
-        placeholder = "Enter google email";
-        break;
-    }
-    this.setState({
-      selectedVerifier: event.target.value,
-      placeholder
-    });
   };
 
   getAllowance = async () => {
@@ -162,30 +129,17 @@ export default class MainApp extends Component {
     const daiBalance = await daiContract.methods.balanceOf(accounts[0]).call();
     this.setState({ daiBalance: web3.utils.fromWei(daiBalance, "ether") });
   };
+
+  getUserRewards = async () => {
+    const { web3, accounts, contract } = this.state;
+
+    const totalRewards = await contract.methods.rewards(accounts[0]).call();
+    this.setState({ totalRewards: web3.utils.fromWei(totalRewards, "ether") });
+  };
+
   signDaiForDelegate = async () => {
     const { web3, accounts, contractAddress } = this.state;
     await permitDai(web3, accounts[0], contractAddress);
-  };
-
-  listenToReward = async () => {
-    const { contract } = this.state;
-
-    contract.events
-      .Reward(
-        {
-          fromBlock: 0
-        },
-        function(error, event) {
-          console.log(event);
-        }
-      )
-      .on("data", function(event) {
-        console.log(event); // same results as the optional callback above
-      })
-      .on("changed", function(event) {
-        // remove event from local database
-      })
-      .on("error", console.error);
   };
 
   checkProfits = async () => {
@@ -194,6 +148,14 @@ export default class MainApp extends Component {
       .checkProfits()
       .call({ from: "0x5222318905891Ae154c3FA5437830cAA86be5499" });
     console.log("*******Profits********", profits);
+  };
+
+  spitProfits = async () => {
+    const { contract, accounts } = this.state;
+    await contract.methods.spitProfits().send({
+      from: accounts[0],
+      gas: 3000000
+    });
   };
 
   showModal = () => {
@@ -212,8 +174,11 @@ export default class MainApp extends Component {
       daiBalance,
       contractAddress,
       allowanceForDelegate,
+      contract,
+      totalRewards,
       show
     } = this.state;
+    console.log("totalRewards", totalRewards);
     return (
       <div className="App">
         <RewardPopup show={show} close={this.closeModal} />
@@ -224,7 +189,7 @@ export default class MainApp extends Component {
             <div className="container-fluid">
               <div className="row">
                 <div className="col-3">
-                  <LeftMenu userInfo={userInfo} />
+                  <LeftMenu userInfo={userInfo} totalRewards={totalRewards} />
                 </div>
                 <div className="col-9">
                   <Info
@@ -240,6 +205,7 @@ export default class MainApp extends Component {
                     contractAddress={contractAddress}
                     getPublicAddress={this.getPublicAddress}
                     showModal={this.showModal}
+                    contract={contract}
                   />
                 </div>
               </div>
@@ -247,41 +213,8 @@ export default class MainApp extends Component {
           ) : (
             <CreateWallet signDaiForDelegate={this.signDaiForDelegate} />
           ))}
+        {/* <button onClick={this.spitProfits}>Spit profits</button> */}
       </div>
     );
   }
 }
-
-// <div>
-//   <div>Account: {account}</div>
-//   <div>Balance: {balance}</div>
-//   <button onClick={this.getUserInfo}>Get User Info</button>
-//   <button onClick={this.logout}>Logout</button>
-//   <br />
-//   <div style={{ marginTop: "20px" }}>
-//     <select
-//       name="verifier"
-//       onChange={this.onSelectedVerifierChanged}
-//       value={selectedVerifier}
-//     >
-//       <option defaultValue value="google">
-//         Google
-//       </option>
-//       <option value="reddit">Reddit</option>
-//       <option value="discord">Discord</option>
-//     </select>
-//     <input
-//       type="email"
-//       style={{ marginLeft: "20px" }}
-//       onChange={e => this.setState({ verifierId: e.target.value })}
-//       placeholder={placeholder}
-//     />
-//   </div>
-//   <button
-//     disabled={!verifierId}
-//     style={{ marginTop: "20px" }}
-//     onClick={this.getPublicAddress}
-//   >
-//     Get Public Address
-//   </button>
-// </div>

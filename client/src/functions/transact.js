@@ -59,7 +59,7 @@ export default async (web3, signer, CONTRACT_ADDRESS, value, recipient, cb) => {
       // The signature is now comprised of r, s, and v.
       console.log("signature: ", signature);
       await pouchInstance.methods
-        .transact(signer, recipient, value, nonce, r, s, v)
+        .transactTest(signer, recipient, value, nonce, r, s, v)
         .send({ from: signer, gas: 4000000 })
         .on("transactionHash", hash => cb(hash));
     }
