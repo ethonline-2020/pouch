@@ -19,7 +19,7 @@ export default async (web3, signer, CONTRACT_ADDRESS) => {
   const domainData = {
     name: "Dai Stablecoin",
     version: "1",
-    chainId: "42",
+    chainId: 42,
     verifyingContract: "0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa"
   };
 

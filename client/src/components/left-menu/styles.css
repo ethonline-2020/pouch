@@ -1,0 +1,55 @@
+.left-menu {
+  min-height: 51em;
+  background: #fff;
+
+  border-radius: 10px;
+  margin: 2em 0 0 1em;
+  position: relative;
+}
+
+.left-menu h1 {
+  font-family: "Gilroy-Bold" !important;
+}
+
+.left-menu p {
+  font-family: "Gilroy-Regular" !important;
+}
+
+.bottom-text {
+  position: absolute;
+  bottom: 2em;
+  margin: 0 2em 0 0;
+}
+
+.reward-block {
+  border-radius: 10px;
+  color: #fff;
+  /* display: flex; */
+  height: 100%;
+  min-height: 0.3em;
+  margin-top: 2em;
+  /* width: 70%; */
+  padding: 25px;
+  /* margin: 1em 0.5em; */
+  position: relative;
+  /* align-items: flex-start; */
+  font-family: "Gilroy-Bold" !important;
+}
+
+.reward {
+  background: #8e2de2; /* fallback for old browsers */
+  background: -webkit-linear-gradient(
+    to right,
+    #4a00e0,
+    #8e2de2
+  ); /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(
+    to right,
+    #4a00e0,
+    #8e2de2
+  ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+
+.small {
+  font-size: 16px;
+}

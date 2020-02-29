@@ -1,0 +1,47 @@
+.function-block {
+  border-radius: 10px;
+  /* color: #fff; */
+  /* display: flex; */
+  height: 100%;
+  min-height: 0.3em;
+  margin-top: 2em;
+  /* width: 70%; */
+  padding: 25px;
+  /* margin: 1em 0.5em; */
+  /* position: relative; */
+  /* align-items: flex-start; */
+}
+
+.function-block h4 {
+  font-family: "Gilroy-Bold" !important;
+}
+
+.add,
+.withdraw,
+.send {
+  background: #fff;
+}
+
+.send-info {
+  background: #8e2de2; /* fallback for old browsers */
+  background: -webkit-linear-gradient(
+    to right,
+    #4a00e0,
+    #8e2de2
+  ); /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(
+    to right,
+    #4a00e0,
+    #8e2de2
+  ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+
+.tx-link {
+  color: #fff;
+  text-decoration: none;
+}
+
+.tx-link:hover {
+  color: #fff;
+  text-decoration: none;
+}

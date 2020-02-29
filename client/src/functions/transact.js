@@ -14,13 +14,13 @@ const transactSchema = [
   { name: "nonce", type: "uint256" }
 ];
 
-export default async (web3, signer, CONTRACT_ADDRESS, value, recipient) => {
+export default async (web3, signer, CONTRACT_ADDRESS, value, recipient, cb) => {
   // const web3 = new Web3(window.web3.currentProvider);
   console.log(CONTRACT_ADDRESS);
   const domainData = {
     name: "Pouch Token",
     version: "1",
-    chainId: "42",
+    chainId: 42,
     verifyingContract: CONTRACT_ADDRESS
   };
 
@@ -59,8 +59,9 @@ export default async (web3, signer, CONTRACT_ADDRESS, value, recipient) => {
       // The signature is now comprised of r, s, and v.
       console.log("signature: ", signature);
       await pouchInstance.methods
-        .transact(signer, recipient, value, nonce, r, s, v)
-        .send({ from: signer, gas: 4000000 });
+        .transactTest(signer, recipient, value, nonce, r, s, v)
+        .send({ from: signer, gas: 4000000 })
+        .on("transactionHash", hash => cb(hash));
     }
   );
 };
