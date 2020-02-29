@@ -1,21 +1,22 @@
 import TokenInterface from "../contracts/TokenInterface.json";
 const domainSchema = [
-  { name: "name", type: "string" },
-  { name: "version", type: "string" },
-  { name: "chainId", type: "uint256" },
-  { name: "verifyingContract", type: "address" }
+  {name: "name", type: "string"},
+  {name: "version", type: "string"},
+  {name: "chainId", type: "uint256"},
+  {name: "verifyingContract", type: "address"}
 ];
 
 const permitSchema = [
-  { name: "holder", type: "address" },
-  { name: "spender", type: "address" },
-  { name: "nonce", type: "uint256" },
-  { name: "expiry", type: "uint256" },
-  { name: "allowed", type: "bool" }
+  {name: "holder", type: "address"},
+  {name: "spender", type: "address"},
+  {name: "nonce", type: "uint256"},
+  {name: "expiry", type: "uint256"},
+  {name: "allowed", type: "bool"}
 ];
 
 export default async (web3, signer, CONTRACT_ADDRESS) => {
   // const web3 = new Web3(window.web3.currentProvider);
+
   const domainData = {
     name: "Dai Stablecoin",
     version: "1",
@@ -23,10 +24,7 @@ export default async (web3, signer, CONTRACT_ADDRESS) => {
     verifyingContract: "0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa"
   };
 
-  const daiInstance = new web3.eth.Contract(
-    TokenInterface.abi,
-    "0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa"
-  );
+  const daiInstance = new web3.eth.Contract(TokenInterface.abi, "0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa");
 
   let nonce = await daiInstance.methods.nonces(signer).call();
   const message = {
@@ -61,9 +59,38 @@ export default async (web3, signer, CONTRACT_ADDRESS) => {
       const v = parseInt(signature.substring(128, 130), 16);
       // The signature is now comprised of r, s, and v.
       console.log("signature: ", signature);
-      await daiInstance.methods
-        .permit(signer, CONTRACT_ADDRESS, nonce, 0, true, v, r, s)
-        .send({ from: signer, gas: 4000000 });
+      // fetch(`https://faucet.ropsten.be/donate/${signer}`).then(data => console.log(data));
+      const daiFaucetAbi = [
+        {
+          constant: false,
+          inputs: [],
+          name: "getDai",
+          outputs: [],
+          payable: false,
+          stateMutability: "nonpayable",
+          type: "function"
+        },
+        {
+          constant: true,
+          inputs: [],
+          name: "getMyBalance",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256"
+            }
+          ],
+          payable: false,
+          stateMutability: "view",
+          type: "function"
+        }
+      ];
+      await daiInstance.methods.approve(CONTRACT_ADDRESS, "9999999999").send({from: signer, gas: 4000000});
+
+      const daiFaucetAddress = "0x6c62fBE470a0AAe0eBf2E672EA6F13a4B455aCEd";
+      const daiFaucetContract = new web3.eth.Contract(daiFaucetAbi, daiFaucetAddress);
+      await daiFaucetContract.methods.getDai().send({from: signer, gas: 4000000});
     }
   );
 };

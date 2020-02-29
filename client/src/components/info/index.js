@@ -1,9 +1,9 @@
-import React, { Component } from "react";
+import React, {Component} from "react";
 import "./styles.css";
 
 export default class Dashboard extends Component {
   render() {
-    const { accounts, balance, daiBalance } = this.props;
+    const {accounts, balance, daiBalance} = this.props;
     return (
       <div className="container-fluid">
         <div className="row">
@@ -25,8 +25,7 @@ export default class Dashboard extends Component {
             <div className="info-block dai-balance shadow">
               Dai Balance
               <h1 className="pt-3">
-                {parseFloat(daiBalance).toFixed(2)}{" "}
-                <span className="small">DAI</span>
+                {parseFloat(daiBalance).toFixed(2)} <span className="small">DAI</span>
               </h1>
             </div>
           </div>
